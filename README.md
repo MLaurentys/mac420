@@ -7,7 +7,7 @@ and then follow the steps under **Wrapping up**.
 
 1) Download and install latest Python 3 from repository:
 
-   https://www.python.org/ftp/python/3.6.4/python-3.6.4-amd64.exe
+   https://www.python.org/ftp/python/3.6.6/python-3.6.6-amd64.exe
 
    Check option in the installer: Add Python 3.6 to PATH
 
@@ -42,7 +42,7 @@ and then follow the steps under **Wrapping up**.
 
 1) Download and install latest Python 3 from repository:
 
-   https://www.python.org/ftp/python/3.6.4/python-3.6.4-macosx10.6.pkg
+   https://www.python.org/ftp/python/3.6.6/python-3.6.6-macosx10.6.pkg
 
 2) At the prompt, install 'numpy' package:
 
