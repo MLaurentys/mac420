@@ -19,9 +19,9 @@ and then follow the steps under **Wrapping up**.
 
 3) Download lastest 'scipy' package from:
 
-	https://pypi.python.org/pypi/scipy/1.0.0rc2
+	https://pypi.python.org/pypi/scipy/1.3.0
 
-	C:\yourself> pip install "C:\Downloads\scipy-1.0.0rc2-cp36-none-win_amd64.whl"
+	C:\yourself> pip install "C:\Downloads\scipy-1.3.0-cp36-none-win_amd64.whl"
 
 6) Now install PyQt5:
 
