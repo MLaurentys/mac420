@@ -13,9 +13,9 @@ and then follow the steps under **Wrapping up**.
 
 2) Download latest 'numpy' package from:
 
-	https://pypi.python.org/pypi/numpy/1.13.3
+	https://pypi.python.org/pypi/numpy/1.17.0
 
-	C:\yourself> pip install "C:\Downloads\numpy-1.13.3-cp36-none-win_amd64.whl"
+	C:\yourself> pip install "C:\Downloads\numpy-1.17.0-cp36-none-win_amd64.whl"
 
 3) Download lastest 'scipy' package from:
 
