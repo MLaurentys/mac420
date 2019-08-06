@@ -80,7 +80,7 @@ class Shaders(QObject):
 	@classmethod
 	def uniformMaterialPhongVertexFlatShader(cls):
 		vertexShaderSource = """
-		#version 330
+		#version 400
 		layout(location = 0) in vec3 position;
 		layout(location = 1) in vec3 normal;
 		uniform mat4 modelMatrix;
@@ -116,7 +116,7 @@ class Shaders(QObject):
 	@classmethod
 	def uniformMaterialPhongFragmentFlatShader(cls):
 		fragmentShaderSource = """
-		#version 330
+		#version 400
 		struct Material {
 			vec3 emission;
 			vec3 ambient;
@@ -167,7 +167,7 @@ class Shaders(QObject):
 	@classmethod
 	def attributeMaterialPhongVertexFlatShader(cls):
 		vertexShaderSource = """
-		#version 330
+		#version 400
 		layout(location = 0) in vec3 position;
 		layout(location = 1) in vec3 normal;
 		layout(location = 2) in vec3 color;
@@ -206,7 +206,7 @@ class Shaders(QObject):
 	@classmethod
 	def attributeMaterialPhongFragmentFlatShader(cls):
 		fragmentShaderSource = """
-		#version 330
+		#version 400
 		struct Material {
 			vec3 emission;
 			vec3 ambient;
@@ -258,7 +258,7 @@ class Shaders(QObject):
 	@classmethod
 	def uniformMaterialPhongVertexShader(cls):
 		vertexShaderSource = """
-		#version 330
+		#version 400
 		layout(location = 0) in vec3 position;
 		layout(location = 1) in vec3 normal;
 		uniform mat4 modelMatrix;
@@ -294,7 +294,7 @@ class Shaders(QObject):
 	@classmethod
 	def uniformMaterialPhongFragmentShader(cls):
 		fragmentShaderSource = """
-		#version 330
+		#version 400
 		struct Material {
 			vec3 emission;
 			vec3 ambient;
@@ -345,7 +345,7 @@ class Shaders(QObject):
 	@classmethod
 	def attributeMaterialPhongVertexShader(cls):
 		vertexShaderSource = """
-		#version 330
+		#version 400
 		layout(location = 0) in vec3 position;
 		layout(location = 1) in vec3 normal;
 		layout(location = 2) in vec3 color;
@@ -384,7 +384,7 @@ class Shaders(QObject):
 	@classmethod
 	def attributeMaterialPhongFragmentShader(cls):
 		fragmentShaderSource = """
-		#version 330
+		#version 400
 		struct Material {
 			vec3 emission;
 			vec3 ambient;
@@ -436,7 +436,7 @@ class Shaders(QObject):
 	@classmethod
 	def attributeColorNoTransformVertexShader(cls):
 		vertexShaderSource = """
-		#version 330
+		#version 400
 		layout(location = 0) in vec3 position;
 		layout(location = 2) in vec3 color;
 		smooth out vec4 vertexColor;
@@ -453,7 +453,7 @@ class Shaders(QObject):
 	@classmethod
 	def uniformMaterialVertexShader(cls):
 		vertexShaderSource = """
-		#version 330
+		#version 400
 		
 		struct Material {
 			vec3 emission;
@@ -484,7 +484,7 @@ class Shaders(QObject):
 	@classmethod
 	def texturedVertexShader(cls):
 		vertexShaderSource = """
-		#version 330
+		#version 400
 		layout(location = 0) in vec3 position;
 		layout(location = 1) in vec3 normal;
 		layout(location = 2) in vec3 color;
@@ -524,7 +524,7 @@ class Shaders(QObject):
 	@classmethod
 	def texturedVertexFlatShader(cls):
 		vertexShaderSource = """
-		#version 330
+		#version 400
 		layout(location = 0) in vec3 position;
 		layout(location = 1) in vec3 normal;
 		layout(location = 2) in vec3 color;
@@ -564,7 +564,7 @@ class Shaders(QObject):
 	@classmethod
 	def wireframeMaterialVertexShader(cls):
 		vertexShaderSource = """
-		#version 330
+		#version 400
 		
 		struct Material {
 			vec3 emission;
@@ -595,7 +595,7 @@ class Shaders(QObject):
 	@classmethod
 	def attributeColorTransformVertexShader(cls):
 		vertexShaderSource = """
-		#version 330
+		#version 400
 		layout(location = 0) in vec3 position;
 		layout(location = 2) in vec3 color;
 		uniform mat4 modelMatrix;
@@ -615,7 +615,7 @@ class Shaders(QObject):
 	@classmethod
 	def simpleFragmentShader(cls):
 		fragmentShaderSource = """
-		#version 330
+		#version 400
 		smooth in vec4 vertexColor;
 		out vec4 fragColor;
 
@@ -630,7 +630,7 @@ class Shaders(QObject):
 	@classmethod
 	def texturedFragmentShader(cls):
 		fragmentShaderSource = """
-		#version 330
+		#version 400
 		struct Material {
 			vec3 emission;
 			vec3 ambient;
@@ -685,7 +685,7 @@ class Shaders(QObject):
 	@classmethod
 	def texturedFragmentFlatShader(cls):
 		fragmentShaderSource = """
-		#version 330
+		#version 400
 		struct Material {
 			vec3 emission;
 			vec3 ambient;
