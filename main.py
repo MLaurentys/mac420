@@ -20,7 +20,8 @@ def main():
 		gl_major_version = int(args.glversion.split(".")[0])
 		gl_minor_version = int(args.glversion.split(".")[1])
 	else:
-		gl_major_version = gl_minor_version = 3
+		gl_major_version = 4
+		gl_minor_version = 0
 
 	## determine number of samples for multisampling
 	if args.glsamples:
