@@ -76,6 +76,11 @@ class Shaders(QObject):
 		self.__instance._texturedFlatShader.addShaderFromSourceCode(QOpenGLShader.Fragment, Shaders.texturedFragmentFlatShader())
 		self.__instance._texturedFlatShader.link()	
 
+		self.__instance._normalVisShader = QOpenGLShaderProgram()
+		self.__instance._normalVisShader.addShaderFromSourceCode(QOpenGLShader.Vertex, Shaders.normalVisVertexShader())
+		self.__instance._normalVisShader.addShaderFromSourceCode(QOpenGLShader.Geometry, Shaders.normalVisGeometryShader())
+		self.__instance._normalVisShader.addShaderFromSourceCode(QOpenGLShader.Fragment, Shaders.normalVisFragmentShader())
+		self.__instance._normalVisShader.link()
 
 	@classmethod
 	def uniformMaterialPhongVertexFlatShader(cls):
@@ -736,44 +741,141 @@ class Shaders(QObject):
 		"""
 		return fragmentShaderSource
 
+	@classmethod
+	def normalVisVertexShader(cls):
+		return """
+		#version 400
+		layout(location = 0) in vec3 position;
+		layout(location = 1) in vec3 normal;
+		uniform mat4 modelMatrix;
+		uniform mat4 viewMatrix;
+		uniform mat4 projectionMatrix;
+		uniform mat3 normalMatrix;
+
+		out vec3 vertexNormal;
+		out vec3 vertexPosition;
+
+		void main() 
+		{
+			gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0);
+			vertexPosition = position;
+			vertexNormal = normal;
+		}
+		"""
+
+	# @classmethod
+	# def normalVisGeometryShader(cls):
+	# 	return """
+	# 	#version 400 core
+	# 	layout (triangles) in;
+	# 	layout (line_strip, max_vertices = 6) out;
+
+	# 	uniform mat4 modelMatrix;
+	# 	uniform mat4 viewMatrix;
+	# 	uniform mat4 projectionMatrix;
+	# 	uniform mat3 normalMatrix;
+
+	# 	in vec3 vertexNormal[];
+	# 	in vec3 vertexPosition[];
+
+	# 	const float MAGNITUDE = 0.4;
+
+	# 	void GenerateLine(int index)
+	# 	{
+	# 	    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition[index], 1.0);
+	# 	    EmitVertex();
+	# 	    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition[index] 
+	# 	    	+ vertexNormal[index] * MAGNITUDE, 1.0);
+	# 	    EmitVertex();
+	# 	    EndPrimitive();
+	# 	}
+
+	# 	void main()
+	# 	{
+	# 	    GenerateLine(0); // first vertex normal
+	# 	    GenerateLine(1); // second vertex normal
+	# 	    GenerateLine(2); // third vertex normal
+	# 	}  
+	# 	"""
+
+	@classmethod
+	def normalVisGeometryShader(cls):
+		return """
+		#version 400
+		layout(triangles) in;
+		layout(line_strip, max_vertices = 4) out;
+
+		in vec3 vertexNormal[];
+		in vec3 vertexPosition[];
+
+		const float a = 0.33;
+		const float b = 0.33;
+		const float c = 0.33;
+
+		const float MAGNITUDE = 0.4;
+
+		uniform mat4 modelMatrix;
+		uniform mat4 viewMatrix;
+		uniform mat4 projectionMatrix;
+		uniform mat3 normalMatrix;
+
+		void main()
+		{
+			vec3 p0 = a*vertexPosition[0];
+			vec3 p1 = b*vertexPosition[1];
+			vec3 p2 = c*vertexPosition[2];
+			vec3 p = p0 + p1 + p2;
+
+			vec3 n0 = a * normalize(vertexNormal[0]);
+			vec3 n1 = b * normalize(vertexNormal[1]);
+			vec3 n2 = c * normalize(vertexNormal[2]);
+			vec3 n = n0 + n1 + n2;
+
+			gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(p, 1.0);
+			EmitVertex();
+			gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(p+n*MAGNITUDE, 1.0);
+			EmitVertex();
+			EndPrimitive();
+		}"""
+
+	@classmethod
+	def normalVisFragmentShader(cls):
+		return """
+		#version 400
+		out vec4 fragColor;
+		void main() {
+			fragColor = vec4(1.0, 1.0, 0.0, 1.0);
+		}"""
 
 	def backgroundShader(self):
 		return self.__instance._backgroundShader
 
-
 	def uniformMaterialShader(self):
 		return self.__instance._uniformMaterialShader
-
 
 	def wireframeMaterialShader(self):
 		return self.__instance._wireframeMaterialShader
 
-
 	def attributeColorShader(self):
 		return self.__instance._attributeColorShader
 		
-
 	def uniformMaterialPhongShader(self):
 		return self.__instance._uniformMaterialPhongShader
-
 
 	def attributeColorPhongShader(self):
 		return self.__instance._attributeColorPhongShader
 
-
 	def uniformMaterialPhongFlatShader(self):
 		return self.__instance._uniformMaterialPhongFlatShader
-
 
 	def attributeColorPhongFlatShader(self):
 		return self.__instance._attributeColorPhongFlatShader
 		
-
 	def texturedShader(self):
 		return self.__instance._texturedShader
-
 
 	def texturedFlatShader(self):
 		return self.__instance._texturedFlatShader
 
-
+	def normalVisShader(self):
+		return self.__instance._normalVisShader

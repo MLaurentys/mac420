@@ -33,6 +33,20 @@ class RenderWidget(QWidget):
         self._viewLayout.setContentsMargins(0, 0, 0, 0)
         self._viewLayout.setSpacing(3)
 
+        # Adding actor selector
+        label = QLabel("Actor: ")
+        self._bottomLayout.addWidget(label)
+        self.actorCombo = QComboBox()
+        self.actorCombo.addItem("Cone", Renderer.ActorType.CONE)
+        self.actorCombo.addItem("Cube", Renderer.ActorType.CUBE)
+        self.actorCombo.addItem("Cylinder", Renderer.ActorType.CYLINDER)
+        self.actorCombo.addItem("Floor", Renderer.ActorType.FLOOR)
+        self.actorCombo.addItem("Icosahedron", Renderer.ActorType.ICOSAHEDRON)
+        self.actorCombo.addItem("Pyramid 1", Renderer.ActorType.PYRAMID_1)
+        self.actorCombo.addItem("Pyramid 2", Renderer.ActorType.PYRAMID_2)
+        self.actorCombo.currentIndexChanged.connect(self._renderer.changeActor)
+        self._bottomLayout.addWidget(self.actorCombo)
+
         ## register view functions
         self._viewFunc = [
             self._renderer.viewLeft,
@@ -142,7 +156,6 @@ class RenderWidget(QWidget):
         self._bottomLayout.addStretch(1)
 
         self._mainLayout.addLayout(self._bottomLayout)
-
         self.setLayout(self._mainLayout)
 
    

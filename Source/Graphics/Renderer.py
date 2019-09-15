@@ -16,10 +16,27 @@ from Source.Graphics.Group import Group
 from Source.Graphics.Gnomon import Gnomon
 from Source.Graphics.World import World
 
+# import actors
 from Source.Graphics.Cone import Cone
+from Source.Graphics.Cube import Cube
+from Source.Graphics.Cylinder import Cylinder
 from Source.Graphics.Icosahedron import Icosahedron
+from Source.Graphics.Floor import Floor
+import Source.Graphics.PyramidOne as PyramidOne
+import Source.Graphics.PyramidTwo as PyramidTwo
+
+from enum import IntEnum
 
 class Renderer(QOpenGLWidget):
+
+    class ActorType(IntEnum):
+        CONE = 0,  
+        CUBE = 1,
+        CYLINDER = 2,
+        FLOOR = 3, 
+        ICOSAHEDRON = 4, 
+        PYRAMID_1 = 5, 
+        PYRAMID_2 = 6
 
     ## initialization
     def __init__(self, parent=None, **kwargs):
@@ -49,6 +66,8 @@ class Renderer(QOpenGLWidget):
         self._initialized = False
 
         self.setAutoFillBackground(False)
+
+        self.currentActor_ = None
 
 
     def printOpenGLInformation(self, format, verbosity=0):
@@ -132,8 +151,12 @@ class Renderer(QOpenGLWidget):
             ###
             #self._world.addActor(Icosahedron(self._world, level=2))
             xform = QMatrix4x4()
-            xform.rotate(-90.0, 0.0, 0.0, 1.0)
-            self._world.addActor(Cone(self._world, resolution=24, height=1.0, radius=0.5, transform=xform))
+            #xform.rotate(-90.0, 0.0, 0.0, 1.0)
+            xform.translate(0, 1.0, 0)
+            # self._world.addActor(Cone(self._world, resolution=24, height=1.0, radius=0.5, transform=xform))
+            # self._world.addActor(PyramidOne.Pyramid(self._world))
+            self.currentActor_ = Cone(self._world, transform=xform) #PyramidTwo.Pyramid(self._world)
+            self._world.addActor(self.currentActor_)
             ###
 
 
@@ -441,7 +464,34 @@ class Renderer(QOpenGLWidget):
         if not enable:
             self._trackball.stop()
 
-
     def _pixelPosToViewPos(self, point):
         return QPointF(2.0 * float(point.x()) / self.width() - 1.0, 1.0 - 2.0 * float(point.y()) / self.height())
+
+    def changeActor(self, index):
+        self.makeCurrent()
+        self.currentActor_.destroy()
+        self._world.removeActor(self.currentActor_)
+
+        xform = QMatrix4x4()        
+        if index  == Renderer.ActorType.CONE:
+            xform.translate(0, 1, 0)
+            self.currentActor_ = Cone(self._world)
+        elif index == Renderer.ActorType.CUBE:            
+            xform.translate(0, 0.5, 0)
+            self.currentActor_ = Cube(self._world, transform=xform)
+        elif index == Renderer.ActorType.CYLINDER:
+            xform.translate(0, 1, 0)
+            self.currentActor_ = Cylinder(self._world, transform=xform)
+        elif index == Renderer.ActorType.FLOOR:            
+            self.currentActor_ = Floor(self._world, transform=xform)
+        elif index == Renderer.ActorType.ICOSAHEDRON:
+            xform.translate(0, 0.85, 0)
+            self.currentActor_ = Icosahedron(self._world, transform=xform)
+        elif index == Renderer.ActorType.PYRAMID_1:
+            self.currentActor_ = PyramidOne.Pyramid(self._world)
+        elif index == Renderer.ActorType.PYRAMID_2:
+            self.currentActor_ = PyramidTwo.Pyramid(self._world)
+
+        self._world.addActor(self.currentActor_)
+        
 

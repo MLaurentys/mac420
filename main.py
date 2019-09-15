@@ -41,7 +41,7 @@ def main():
 	glformat.setBlueBufferSize(8)
 	if "Darwin" not in platform.platform():
 		glformat.setAlphaBufferSize(8)
-	glformat.setSamples(gl_samples)
+	# glformat.setSamples(gl_samples)
 	glformat.setStencilBufferSize(8)
 	glformat.setSwapInterval(0)
 	glformat.setVersion(gl_major_version, gl_minor_version)

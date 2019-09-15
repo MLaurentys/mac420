@@ -54,6 +54,7 @@ class Actor(QObject):
         self._nolight_solid_shader = self._shader_collection.uniformMaterialShader()
         self._wireframe_shader = self._shader_collection.uniformMaterialShader()
         self._nolight_wireframe_shader = self._shader_collection.uniformMaterialShader()
+        self._normal_visualizing_shader = self._shader_collection.normalVisShader()
         self._active_shader = self._solid_shader
         self._active_material = self._material
 
@@ -349,7 +350,8 @@ class Actor(QObject):
         """Create object vertex arrays and buffers"""
         
         ## list of shaders
-        shaders = [self._solid_shader, self._wireframe_shader, self._nolight_solid_shader, self._nolight_wireframe_shader]
+        shaders = [self._solid_shader, self._wireframe_shader, self._nolight_solid_shader, 
+            self._nolight_wireframe_shader, self._normal_visualizing_shader]
 
         ## bind vao
         self._vao.create()
@@ -458,6 +460,7 @@ class Actor(QObject):
         self._active_shader.setUniformValue("viewMatrix", self._scene.camera.viewMatrix)
         self._active_shader.setUniformValue("projectionMatrix", self._scene.camera.projectionMatrix)
         self._active_shader.setUniformValue("normalMatrix", normalMatrix)
+
         if self.texture() is not None:
             self._active_shader.setUniformValue("texObject", 0)
         
@@ -585,7 +588,12 @@ class Actor(QObject):
     def setPickFactor(self, value):
         """Sets the pick factor for intersection calculations"""
         self._pickFactor = value
-        
+
+
+    def destroy(self):
+        self._vao.destroy()
+        self._vbo.destroy()
+        self._ibo.destroy()
         
     def intersect(self, ray):
         """Returns intersection if any"""
