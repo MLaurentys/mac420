@@ -44,6 +44,8 @@ class RenderWidget(QWidget):
         self.actorCombo.addItem("Icosahedron", Renderer.ActorType.ICOSAHEDRON)
         self.actorCombo.addItem("Pyramid 1", Renderer.ActorType.PYRAMID_1)
         self.actorCombo.addItem("Pyramid 2", Renderer.ActorType.PYRAMID_2)
+        self.actorCombo.addItem("Sphere (Polar)", Renderer.ActorType.SPHERE_POLAR)
+        self.actorCombo.addItem("Sphere (Icos)", Renderer.ActorType.SPHERE_ICOS)
         self.actorCombo.currentIndexChanged.connect(self._renderer.changeActor)
         self._bottomLayout.addWidget(self.actorCombo)
 

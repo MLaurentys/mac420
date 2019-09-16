@@ -24,6 +24,8 @@ from Source.Graphics.Icosahedron import Icosahedron
 from Source.Graphics.Floor import Floor
 import Source.Graphics.PyramidOne as PyramidOne
 import Source.Graphics.PyramidTwo as PyramidTwo
+from Source.Graphics.SpherePolar import SpherePolar
+from Source.Graphics.SphereIcos import SphereIcos
 
 from enum import IntEnum
 
@@ -37,6 +39,8 @@ class Renderer(QOpenGLWidget):
         ICOSAHEDRON = 4, 
         PYRAMID_1 = 5, 
         PYRAMID_2 = 6
+        SPHERE_POLAR = 7,
+        SPHERE_ICOS = 8,
 
     ## initialization
     def __init__(self, parent=None, **kwargs):
@@ -491,7 +495,10 @@ class Renderer(QOpenGLWidget):
             self.currentActor_ = PyramidOne.Pyramid(self._world)
         elif index == Renderer.ActorType.PYRAMID_2:
             self.currentActor_ = PyramidTwo.Pyramid(self._world)
-
+        elif index == Renderer.ActorType.SPHERE_ICOS:
+            self.currentActor_ = SphereIcos(self._world, radius=2.0)
+        elif index == Renderer.ActorType.SPHERE_POLAR:
+            self.currentActor_ = SpherePolar(self._world, 4.0, 50, 50)
         self._world.addActor(self.currentActor_)
         
 
