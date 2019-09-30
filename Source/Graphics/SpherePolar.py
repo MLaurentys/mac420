@@ -14,7 +14,7 @@ class SpherePolar(Actor):
         self._hor_res = horRes
         self._ver_res = verRes
         self._vertices = None
-
+        self._normals = None
         ## create actor
         self.initialize()
         
@@ -35,78 +35,51 @@ class SpherePolar(Actor):
         """Returns the vertical resolution of this cone"""
         return self._ver_res
 
+    def addVertex(self, v, vertices):
+        """Add a vertex into the array"""
+        norm = np.linalg.norm(v)
+        if(norm != 0):
+            vn = v / norm * self._radius
+        else:
+            vn = [0.0,0.0,0.0]
+        vertices += [[vn[0], vn[1], vn[2]]]
+        return len(vertices)-1
 
     def generateGeometry(self):
         """Generate geometry"""
         
-        vertices, normals_hor, normals_ver = [], [], []
+        ver_step = math.pi/self._ver_res
+        hor_step = 2*math.pi/self._hor_res
+        cur_hor = 0
+        cur_ver = 0
+        r = self._radius
 
-        # circle coordinates in x-y and x-z planes
-        hor_angle = np.linspace(0.0, 2.0*math.pi, self._horRes)
-        ver_angle = np.linspace(0.0, 2.0*math.pi, self._verRes)
+        #vertices = np.empty((int(2*self._hor_res*self._ver_res), 3))
+        vertices = []
+        indices = []
 
-        ## normals
-        hor_nx = np.cos(hor_angle)
-        hor_ny = np.ones(self._horRes+1)
-        hor_nz = np.sin(hor_angle)
+        normals = np.empty((int(2*self._hor_res*self._ver_res), 3))
+        center = [0.0,0.0,0.0]
+        self.addVertex(center, vertices)
 
+        nnext = [r, 0.0, 0.0]
+        for i  in range(1, self._hor_res):
+            self.addVertex(nnext, vertices)
+            cur_hor += hor_step
+            nnext[0] = r * math.cos(i * hor_step)
+            nnext[1] = r * math.sin(i * hor_step)
 
+        for i in range(1, len(vertices)-1):
+            if (i <= (len(vertices)/2)):
+                indices += [[0, i, i + 1]]
+            else:
+                indices += [[0, i+ 1, i]]
 
-        ## circle coordinates in x-z plane
-       # h2 = self._height * 0.5
-       # angle = np.linspace(0.0, 2.0*math.pi, self._resolution, endpoint=False)
-       # angle = np.append(angle, [0.0])
-#
-       # ## scaling factors for vertex normals
-       # cosn = (self._height / np.sqrt( self._height * self._height + self._radius * self._radius ))
-       # sinn = (self._radius / np.sqrt( self._height * self._height + self._radius * self._radius ))
-#
-       # x = np.cos(angle) * self._radius
-       # y = np.zeros(self._resolution+1)
-       # z = np.sin(angle) * self._radius
-#
-       # ## normals
-       # nx = np.cos(angle) * cosn
-       # ny = sinn * np.ones(self._resolution+1)
-       # nz = np.sin(angle) * cosn
-       # 
-       # #t = 1.0
-       # #delta = 1.0 / self._resolution
-       # vertices, normals = [], []
-       # #texcoords = []
-       # for i in list(range(self._resolution)):
-#
-       #     vertices.append([0.0, h2, 0.0])
-       #     normals.append([(nx[i]+nx[i+1])*0.5, (ny[i]+ny[i+1])*0.5, (nz[i]+nz[i+1])*0.5])
-       #     #texcoords.append([t-delta*0.5, 1])
-#
-       #     vertices.append([x[i], -h2, z[i]])
-       #     normals.append([nx[i], ny[i], nz[i]])
-       #     #texcoords.append([t, 0.0])
-#
-       #     vertices.append([x[i+1], -h2, z[i+1]])
-       #     normals.append([nx[i+1], ny[i+1], nz[i+1]])
-       #     #texcoords.append([t-delta, 0.0])
-#
-       #     #t -= delta
-#
-       # vertices_side = np.array(vertices, dtype=np.float32)
-       # normals_side = np.array(normals, dtype=np.float32)
-       # #textcoords_side = np.array(normals, dtype=np.float32)
-       # self._num_vertices_side = len(vertices_side)
-#
-       # ##  bottom cap
-       # vertices, normals = [[0.0, -h2, 0.0]], [[0.0, -1.0, 0.0]]
-       # for i in list(reversed(range(self._resolution+1))):
-       #     vertices.append([x[i], -h2, z[i]])
-       #     normals.append([0.0, -1.0, 0.0])
-       # vertices_bot = np.array(vertices, dtype=np.float32)
-       # normals_bot = np.array(normals, dtype=np.float32)
-       # self._num_vertices_bot = len(vertices_bot)
-#
-       # self._vertices = np.concatenate((vertices_side, vertices_bot))
-       # self._normals = np.concatenate((normals_side, normals_bot))
+        indices += [[0, len(vertices) - 1, 1]]
 
+        self._normals = np.array([[0.0, 0.0, 1.0]] * len(vertices), dtype=np.float32)
+        self._vertices = np.array(vertices, dtype=np.float32)
+        self._indices = np.array(indices, dtype=np.uint32)
 
     def initialize(self):
         """Creates cone geometry"""
@@ -114,12 +87,14 @@ class SpherePolar(Actor):
             self.generateGeometry()
 
         ## create object
-        self.create(self._vertices, normals=self._normals)
+        self.create(self._vertices, 
+                    colors=None,
+                    normals=self._normals, 
+                    indices=self._indices)
 
 
     def render(self):
-        """Render cube"""
-        GL.glDrawArrays(GL.GL_TRIANGLES, 0, self._num_vertices_side)
-        GL.glDrawArrays(GL.GL_TRIANGLE_FAN, self._num_vertices_side, self._num_vertices_bot)
+        """Render Sphere"""
+        GL.glDrawElements(GL.GL_TRIANGLES, self.numberOfIndices, GL.GL_UNSIGNED_INT, None)
 
     
