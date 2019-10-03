@@ -17,7 +17,6 @@ class Cube(Actor):
         self.initialize()
 
 
-    @classmethod
     def isSelectable(self):
         """Returns true if actor is selectable"""
         return True
@@ -124,5 +123,3 @@ class Cube(Actor):
     def render(self):
         """Render cube"""
         GL.glDrawArrays(self._render_mode, 0, len(self._vertices))
-
-    

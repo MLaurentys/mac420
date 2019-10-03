@@ -10,105 +10,145 @@ class SphereIcos(Actor):
         """Initialize actor."""
         super(SphereIcos, self).__init__(renderer, **kwargs)
 
+        self._inLevel = kwargs.get("innerLevel", 1)
+        self._ouLevel = kwargs.get("outerLevel", 1)
         self._radius = kwargs.get("radius", 1.0)
-        self._height = kwargs.get("height", 2.0)
-        self._resolution = kwargs.get("resolution", 5)
+        self._rgb_colors = kwargs.get("colors", False)
+
+        ## register shaders
+        if self._rgb_colors:
+            self.setSolidShader(self.shaderCollection.subdivTessalationShader())
+            self.setSolidFlatShader(self.shaderCollection.subdivTessalationShader())
+            self.setNoLightSolidShader(self.shaderCollection.subdivTessalationShaderNoLight())
+            self.setWireframeShader(self.shaderCollection.subdivTessalationShaderNoLight())
+        else:
+            self.setSolidShader(self.shaderCollection.subdivTessalationShader())
+            self.setSolidFlatShader(self.shaderCollection.subdivTessalationShader())
+            self.setNoLightSolidShader(self.shaderCollection.subdivTessalationShaderNoLight())
+            self.setWireframeShader(self.shaderCollection.subdivTessalationShader())
+            self.setNoLightWireframeShader(self.shaderCollection.subdivTessalationShaderNoLight())
+
 
         self._vertices = None
 
         ## create actor
         self.initialize()
-        
-
-    @property
-    def radius(self):
-        """Returns the bottom radius of this cone"""
-        return self._radius
 
 
-    @property
-    def height(self):
-        """Returns the height of this cone"""
-        return self._height
+    def addVertex(self, v, vertices):
+        """Add a vertex into the array"""
+        vn = v / np.linalg.norm(v) * self._radius
+        vertices += [[vn[0], vn[1], vn[2]]]
+        return len(vertices)-1
 
 
-    @property
-    def resolution(self):
-        """Returns the resolution of this cone"""
-        return self._resolution
+    def getMiddlePoint(self, p1, p2, vertices, indexCache):
+        """Returns index of point in the middle of p1 and p2"""
+
+        ## first check if we have it already
+        firstIsSmaller = p1 < p2;
+        smallerIndex = p1 if p1 < p2 else p2
+        greaterIndex = p2 if p1 < p2 else p1
+        key = (smallerIndex << 32) + greaterIndex
+
+        try:
+            ret = indexCache[key]
+            return ret
+        except:
+            pass
+
+        ## not in cache, calculate it
+        point1 = vertices[p1]
+        point2 = vertices[p2]
+        middle = ((point1[0] + point2[0]) / 2.0, (point1[1] + point2[1]) / 2.0, (point1[2] + point2[2]) / 2.0)
+
+        ## add vertex makes sure point is on unit sphere
+        index = self.addVertex(np.array(middle), vertices)
+
+        ## store it, return index
+        indexCache[key] = index
+
+        return index
 
 
     def generateGeometry(self):
-        """Generate geometry"""
+        """Generate vertices"""
+        vertices = []
+        indices = []
+        t = (1.0 + math.sqrt(5.0)) / 2.0
+
+        self.addVertex(np.array((-1.0,  t,  0)), vertices)
+        self.addVertex(np.array(( 1.0,  t,  0)), vertices)
+        self.addVertex(np.array((-1.0, -t,  0)), vertices)
+        self.addVertex(np.array(( 1.0, -t,  0)), vertices)
+
+        self.addVertex(np.array(( 0, -1.0,  t)), vertices)
+        self.addVertex(np.array(( 0,  1.0,  t)), vertices)
+        self.addVertex(np.array(( 0, -1.0, -t)), vertices)
+        self.addVertex(np.array(( 0,  1.0, -t)), vertices)
+
+        self.addVertex(np.array(( t,  0, -1.0)), vertices)
+        self.addVertex(np.array(( t,  0,  1.0)), vertices)
+        self.addVertex(np.array((-t,  0, -1.0)), vertices)
+        self.addVertex(np.array((-t,  0,  1.0)), vertices)
+
+        ## 5 faces around point 0
+        indices += [[0, 11, 5]]
+        indices += [[0, 11, 5]]
+        indices += [[0, 5, 1]]
+        indices += [[0, 1, 7]]
+        indices += [[0, 7, 10]]
+        indices += [[0, 10, 11]]
+
+        ## 5 adjacent faces 
+        indices += [[1, 5, 9]]
+        indices += [[5, 11, 4]]
+        indices += [[11, 10, 2]]
+        indices += [[10, 7, 6]]
+        indices += [[7, 1, 8]]
+
+        ## 5 faces around point 3
+        indices += [[3, 9, 4]]
+        indices += [[3, 4, 2]]
+        indices += [[3, 2, 6]]
+        indices += [[3, 6, 8]]
+        indices += [[3, 8, 9]]
+
+        ## 5 adjacent faces 
+        indices += [[4, 9, 5]]
+        indices += [[2, 4, 11]]
+        indices += [[6, 2, 10]]
+        indices += [[8, 6, 7]]
+        indices += [[9, 8, 1]]
         
-        ## circle coordinates in x-z plane
-        h2 = self._height * 0.5
-        angle = np.linspace(0.0, 2.0*math.pi, self._resolution, endpoint=False)
-        angle = np.append(angle, [0.0])
-
-        ## scaling factors for vertex normals
-        cosn = (self._height / np.sqrt( self._height * self._height + self._radius * self._radius ))
-        sinn = (self._radius / np.sqrt( self._height * self._height + self._radius * self._radius ))
-
-        x = np.cos(angle) * self._radius
-        y = np.zeros(self._resolution+1)
-        z = np.sin(angle) * self._radius
-
-        ## normals
-        nx = np.cos(angle) * cosn
-        ny = sinn * np.ones(self._resolution+1)
-        nz = np.sin(angle) * cosn
-
-        #t = 1.0
-        #delta = 1.0 / self._resolution
-        vertices, normals = [], []
-        #texcoords = []
-        for i in list(range(self._resolution)):
-
-            vertices.append([0.0, h2, 0.0])
-            normals.append([(nx[i]+nx[i+1])*0.5, (ny[i]+ny[i+1])*0.5, (nz[i]+nz[i+1])*0.5])
-            #texcoords.append([t-delta*0.5, 1])
-
-            vertices.append([x[i], -h2, z[i]])
-            normals.append([nx[i], ny[i], nz[i]])
-            #texcoords.append([t, 0.0])
-
-            vertices.append([x[i+1], -h2, z[i+1]])
-            normals.append([nx[i+1], ny[i+1], nz[i+1]])
-            #texcoords.append([t-delta, 0.0])
-
-            #t -= delta
-
-        vertices_side = np.array(vertices, dtype=np.float32)
-        normals_side = np.array(normals, dtype=np.float32)
-        #textcoords_side = np.array(normals, dtype=np.float32)
-        self._num_vertices_side = len(vertices_side)
-
-        ##  bottom cap
-        vertices, normals = [[0.0, -h2, 0.0]], [[0.0, -1.0, 0.0]]
-        for i in list(reversed(range(self._resolution+1))):
-            vertices.append([x[i], -h2, z[i]])
-            normals.append([0.0, -1.0, 0.0])
-        vertices_bot = np.array(vertices, dtype=np.float32)
-        normals_bot = np.array(normals, dtype=np.float32)
-        self._num_vertices_bot = len(vertices_bot)
-
-        self._vertices = np.concatenate((vertices_side, vertices_bot))
-        self._normals = np.concatenate((normals_side, normals_bot))
+        self._vertices = np.array(vertices, dtype=np.float32)
+        if self._rgb_colors:
+            self._colors = np.abs(np.array(vertices, dtype=np.float32))
+        self._normals = np.array(vertices, dtype=np.float32)
+        self._indices = np.array(indices, dtype=np.uint32)
 
 
     def initialize(self):
-        """Creates cone geometry"""
+        """Creates icosahedron geometry"""
         if self._vertices is None:
             self.generateGeometry()
 
-        ## create object
-        self.create(self._vertices, normals=self._normals)
 
+
+        ## create object
+        self.create(self._vertices, colors=self._colors if self._rgb_colors else None,
+            normals=self._normals,
+            indices=self._indices)
+            
 
     def render(self):
-        """Render cube"""
-        GL.glDrawArrays(GL.GL_TRIANGLES, 0, self._num_vertices_side)
-        GL.glDrawArrays(GL.GL_TRIANGLE_FAN, self._num_vertices_side, self._num_vertices_bot)
+        """Render icosahedron"""
+        self._active_shader.bind()
+        self._active_shader.setUniformValue("innerSubdivisionLevel", self._inLevel)
+        self._active_shader.setUniformValue("outerSubdivisionLevel", self._ouLevel)
+        self._active_shader.setUniformValue("radius", self._radius)
+        #GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
+        GL.glDrawElements(self._render_mode, self.numberOfIndices, GL.GL_UNSIGNED_INT, None)
+        self._active_shader.release()
 
     

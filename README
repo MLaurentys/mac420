@@ -1,0 +1,24 @@
+Nome: Matheus T. de Laurentys
+NUSP: 9793714
+
+Feito individualmente
+
+Parte I: Esfera Polar
+ - Feita de maneira a nao repetir a criacao de nunhum vertice
+ - Gera todos os vertices 
+ - Cria um mapa de um par (i,j) -> (ind, (uv)),
+    + ind e o indice do vertice correspondente ao par
+    + (uv) e o par que corresponde a posicao do vertice no plano uv
+ - Cria a esfera adicionando os vertices mapeados ao vetor
+ - Normais sao iguais ao vertices 
+ - Nenhuma mudanca nos shaders
+
+Parte II: Esfera Tesselagem
+ - Utiliza o codigo base para geracao do icosaedro
+ - Utiliza dois QOpenGLShaderProgram
+    + Tesselagem com luz
+    + Tesselagem sem luz
+ - O raio foi adicionado apenas ao TCS, nao ao codigo base do icosaedro
+ - Calculos de posicao na tela feitos no TCS
+!!- Infelizmente, normais sao iguais as posicoes, nao diferenciando o flat no normal
+ - Pares uv nao estao implementados

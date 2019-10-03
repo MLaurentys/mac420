@@ -30,7 +30,6 @@ from Source.Graphics.SphereIcos import SphereIcos
 from enum import IntEnum
 
 class Renderer(QOpenGLWidget):
-
     class ActorType(IntEnum):
         CONE = 0,  
         CUBE = 1,
@@ -151,18 +150,45 @@ class Renderer(QOpenGLWidget):
             self._initialized = True
 
             ###
-            ### Add an object to the scene
+            ### Creates Scenes
             ###
-            #self._world.addActor(Icosahedron(self._world, level=2))
-            xform = QMatrix4x4()
-            #xform.rotate(-90.0, 0.0, 0.0, 1.0)
-            xform.translate(0, 1.0, 0)
-            # self._world.addActor(Cone(self._world, resolution=24, height=1.0, radius=0.5, transform=xform))
-            # self._world.addActor(PyramidOne.Pyramid(self._world))
-            self.currentActor_ = Cone(self._world, transform=xform) #PyramidTwo.Pyramid(self._world)
-            self._world.addActor(self.currentActor_)
-            ###
-
+            SCENE = 0 #polar spheres
+            SCENE = 1 #tessalation spheres
+            #SCENE = 2 #test scene
+            if(SCENE == 0):
+                xform1 = QMatrix4x4()
+                xform2 = QMatrix4x4()
+                xform3 = QMatrix4x4()
+                xform1.translate(2.0, 0.0, 0.0)
+                xform2.translate(-3.0, 0.0, 0.0)
+                xform3.translate(0.0, 0.0, 0.0)
+                self._actor1 = SpherePolar(self._world, 1.0, 7, 7, transform=xform1)
+                self._actor2 = SpherePolar(self._world, 2.0, 12, 15, transform=xform2)
+                self._actor3 = SpherePolar(self._world, 1.0, 40, 40, transform=xform3)
+                self._world.addActor(self._actor1)
+                self._world.addActor(self._actor2)
+                self._world.addActor(self._actor3)
+            elif(SCENE == 1):
+                xform1 = QMatrix4x4()
+                xform2 = QMatrix4x4()
+                xform3 = QMatrix4x4()
+                xform1.translate(2.0, 0.0, 0.0)
+                xform2.translate(-3.0, 0.0, 0.0)
+                xform3.translate(0.0, 0.0, 0.0)
+                self._actor1 = SphereIcos(self._world, radius=1.0, innerLevel=2, outerLevel=2, transform=xform1, mode=GL.GL_PATCHES)
+                self._actor2 = SphereIcos(self._world, radius=2.0, innerLevel=4, outerLevel=4, transform=xform2, mode=GL.GL_PATCHES)
+                self._actor3 = SphereIcos(self._world, radius=1.0, innerLevel=1, outerLevel=5, transform=xform3, mode=GL.GL_PATCHES)
+                self._world.addActor(self._actor1)
+                self._world.addActor(self._actor2)
+                self._world.addActor(self._actor3)
+            elif(SCENE == 2):
+                xform1 = QMatrix4x4()
+                xform1.translate(0.0, 0.0, 0.0)
+                #self._actor1 = Icosahedron(self._world, transform=xform1)
+                self._actor1 = SphereIcos(self._world, radius=1.0,
+                                    innerLevel=1, outerLevel=5, transform=xform1,
+                                    mode=GL.GL_PATCHES)
+                self._world.addActor(self._actor1)
 
         else:
             
@@ -489,7 +515,7 @@ class Renderer(QOpenGLWidget):
         elif index == Renderer.ActorType.FLOOR:            
             self.currentActor_ = Floor(self._world, transform=xform)
         elif index == Renderer.ActorType.ICOSAHEDRON:
-            xform.translate(0, 0.85, 0)
+            xform.translate(0, -2.0, 0)
             self.currentActor_ = Icosahedron(self._world, transform=xform)
         elif index == Renderer.ActorType.PYRAMID_1:
             self.currentActor_ = PyramidOne.Pyramid(self._world)
@@ -498,7 +524,7 @@ class Renderer(QOpenGLWidget):
         elif index == Renderer.ActorType.SPHERE_ICOS:
             self.currentActor_ = SphereIcos(self._world, radius=2.0)
         elif index == Renderer.ActorType.SPHERE_POLAR:
-            self.currentActor_ = SpherePolar(self._world, 4.0, 50, 50)
+            self.currentActor_ = SpherePolar(self._world, 5.0, 60, 30)
         self._world.addActor(self.currentActor_)
         
 
