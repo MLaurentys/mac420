@@ -153,8 +153,8 @@ class Renderer(QOpenGLWidget):
             ### Creates Scenes
             ###
             SCENE = 0 #polar spheres
-            SCENE = 1 #tessalation spheres
-            #SCENE = 2 #test scene
+            #SCENE = 1 #tessalation spheres
+            SCENE = 2 #test scene
             if(SCENE == 0):
                 xform1 = QMatrix4x4()
                 xform2 = QMatrix4x4()

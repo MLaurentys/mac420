@@ -199,7 +199,6 @@ class Shaders(QObject):
             tePosition = viewMatrix * modelMatrix * vec4(pos, 1.0);
             teNormal = viewMatrix * vec4(normalMatrix * normal, 0.0);
             tePatchDistance = gl_TessCoord;
-            //vec4 aux = projectionMatrix * tePosition;
 			gl_Position = projectionMatrix * tePosition;
 		}
 		"""
@@ -270,6 +269,14 @@ class Shaders(QObject):
 		#version 400 core
 		layout(triangles, equal_spacing, ccw) in;
 
+        struct Material {
+            vec3 emission;
+            vec3 ambient;
+            vec3 diffuse;
+            vec3 specular;    
+            float shininess;
+        }; 
+
 		in vec3 tcPosition[];
         in vec3 tcNormal[];
 
@@ -277,44 +284,24 @@ class Shaders(QObject):
         uniform mat4 modelMatrix;
         uniform mat4 projectionMatrix;
         uniform mat3 normalMatrix;
-        uniform vec4 lightPosition;
-        uniform vec3 lightAttenuation;
-
-        out vec3 tePatchDistance;
-        out vec3 tePosition;
-        out vec4 teNormal;
-        smooth out vec3 lightDirection;
-        smooth out float attenuation;
+        uniform float radius;
+        uniform Material material;
+        out vec4 tePosition;
+        out vec4 teColor;
 
 		void main()
 		{
-            //vertices positions
+           //vertices positions
 			vec3 p0 = gl_TessCoord.x * tcPosition[0];
 			vec3 p1 = gl_TessCoord.y * tcPosition[1];
 			vec3 p2 = gl_TessCoord.z * tcPosition[2];
-            tePosition = normalize(p0 + p1 + p2);
+            vec3 pos = radius * vec3(normalize(p0 + p1 + p2));
 
-            //normal values
-			vec3 n0 = gl_TessCoord.x * tcNormal[0];
-			vec3 n1 = gl_TessCoord.y * tcNormal[1];
-			vec3 n2 = gl_TessCoord.z * tcNormal[2];
-            vec3 normal = vec3(normalize(n0 + n1 + n2));
-            //light values
-            if (lightPosition.w == 0.0) {
-                lightDirection = normalize(lightPosition.xyz);
-                attenuation = 1.0;
-            }
-            else {
-                lightDirection = normalize(lightPosition.xyz - tePosition.xyz);
-                float distance = length(lightPosition.xyz - tePosition.xyz);
-                attenuation = 1.0 / (lightAttenuation.x + lightAttenuation.y * distance + lightAttenuation.z * distance * distance);
-            }
+            teColor = vec4(material.diffuse, 1.0);
 
             //gl values
-            teNormal = viewMatrix * vec4(normalMatrix * normal, 0.0);
-            tePatchDistance = gl_TessCoord;
-            vec4 aux = projectionMatrix * viewMatrix * modelMatrix * vec4(tePosition, 1.0);
-			gl_Position = aux;
+            tePosition = viewMatrix * modelMatrix * vec4(pos, 1.0);
+			gl_Position = projectionMatrix * tePosition;
 		}
 		"""
         )
@@ -326,13 +313,15 @@ class Shaders(QObject):
         """
         #version 400
 
-        out vec4 FragColor;
+        in vec4 teColor;
+        in vec4 tePosition;
+
+        out vec4 fragColor;
 
         void main()
         {
 
-            vec3 color = vec3(0.0, 0.5, 0.0);
-            FragColor = vec4(color, 1.0);
+            fragColor = teColor;
         }
 
         """)
@@ -1018,41 +1007,6 @@ class Shaders(QObject):
             vertexNormal = normal;
         }
         """
-
-    # @classmethod
-    # def normalVisGeometryShader(cls):
-    #     return """
-    #     #version 400 core
-    #     layout   (triangles) in;
-    #     layout (line_strip, max_vertices = 6) out;
-
-    #     uniform mat4 modelMatrix;
-    #     uniform mat4 viewMatrix;
-    #     uniform mat4 projectionMatrix;
-    #     uniform mat3 normalMatrix;
-
-    #     in vec3 vertexNormal[];
-    #     in vec3 vertexPosition[];
-
-    #     const float MAGNITUDE = 0.4;
-
-    #     void GenerateLine(int index)
-    #     {
-    #         gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition[index], 1.0);
-    #         EmitVertex();
-    #         gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition[index] 
-    #             + vertexNormal[index] * MAGNITUDE, 1.0);
-    #         EmitVertex();
-    #         EndPrimitive();
-    #     }
-
-    #     void main()
-    #     {
-    #         GenerateLine(0); // first vertex normal
-    #         GenerateLine(1); // second vertex normal
-    #         GenerateLine(2); // third vertex normal
-    #     }  
-    #     """
 
     @classmethod
     def normalVisGeometryShader(cls):
