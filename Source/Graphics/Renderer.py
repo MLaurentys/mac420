@@ -153,8 +153,8 @@ class Renderer(QOpenGLWidget):
             ### Creates Scenes
             ###
             SCENE = 0 #polar spheres
-            #SCENE = 1 #tessalation spheres
-            SCENE = 2 #test scene
+            SCENE = 1 #tessalation spheres
+            #SCENE = 2 #test scene
             if(SCENE == 0):
                 xform1 = QMatrix4x4()
                 xform2 = QMatrix4x4()
@@ -177,17 +177,17 @@ class Renderer(QOpenGLWidget):
                 xform3.translate(0.0, 0.0, 0.0)
                 self._actor1 = SphereIcos(self._world, radius=1.0, innerLevel=2, outerLevel=2, transform=xform1, mode=GL.GL_PATCHES)
                 self._actor2 = SphereIcos(self._world, radius=2.0, innerLevel=4, outerLevel=4, transform=xform2, mode=GL.GL_PATCHES)
-                self._actor3 = SphereIcos(self._world, radius=1.0, innerLevel=1, outerLevel=5, transform=xform3, mode=GL.GL_PATCHES)
+                self._actor3 = SphereIcos(self._world, radius=1.0, innerLevel=5, outerLevel=5, transform=xform3, mode=GL.GL_PATCHES, colors=True)
                 self._world.addActor(self._actor1)
                 self._world.addActor(self._actor2)
                 self._world.addActor(self._actor3)
             elif(SCENE == 2):
                 xform1 = QMatrix4x4()
                 xform1.translate(0.0, 0.0, 0.0)
-                #self._actor1 = Icosahedron(self._world, transform=xform1)
+                #self._actor1 = Icosahedron(self._world, transform=xform1, colors=True)
                 self._actor1 = SphereIcos(self._world, radius=1.0,
                                     innerLevel=1, outerLevel=5, transform=xform1,
-                                    mode=GL.GL_PATCHES)
+                                    mode=GL.GL_PATCHES, colors=True)
                 self._world.addActor(self._actor1)
 
         else:
@@ -522,9 +522,9 @@ class Renderer(QOpenGLWidget):
         elif index == Renderer.ActorType.PYRAMID_2:
             self.currentActor_ = PyramidTwo.Pyramid(self._world)
         elif index == Renderer.ActorType.SPHERE_ICOS:
-            self.currentActor_ = SphereIcos(self._world, radius=2.0)
+            self.currentActor_ = SphereIcos(self._world, radius=1.0, innerLevel=2, outerLevel=2, transform=xform, mode=GL.GL_PATCHES)
         elif index == Renderer.ActorType.SPHERE_POLAR:
-            self.currentActor_ = SpherePolar(self._world, 5.0, 60, 30)
+            self.currentActor_ = SpherePolar(self._world, 1.0, 40, 40, transform=xform)
         self._world.addActor(self.currentActor_)
         
 

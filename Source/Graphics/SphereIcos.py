@@ -2,6 +2,7 @@ import math
 import numpy as np
 from OpenGL import GL
 from Source.Graphics.Actor import Actor
+from PyQt5.QtGui import QVector2D
 
 class SphereIcos(Actor):
 
@@ -17,13 +18,15 @@ class SphereIcos(Actor):
 
         ## register shaders
         if self._rgb_colors:
-            self.setSolidShader(self.shaderCollection.subdivTessalationShader())
-            self.setSolidFlatShader(self.shaderCollection.subdivTessalationShader())
-            self.setNoLightSolidShader(self.shaderCollection.subdivTessalationShaderNoLight())
-            self.setWireframeShader(self.shaderCollection.subdivTessalationShaderNoLight())
+            self.setSolidShader(self.shaderCollection.color_subdivTessalationShader())
+            self.setSolidFlatShader(self.shaderCollection.color_subdivTessalationShaderFLAT())
+            self.setNoLightSolidShader(self.shaderCollection.color_subdivTessalationShaderNoLight())
+            self.setWireframeShader(self.shaderCollection.color_subdivTessalationShader())
+            self.setNoLightWireframeShader(self.shaderCollection.color_subdivTessalationShaderNoLight())
+
         else:
             self.setSolidShader(self.shaderCollection.subdivTessalationShader())
-            self.setSolidFlatShader(self.shaderCollection.subdivTessalationShader())
+            self.setSolidFlatShader(self.shaderCollection.subdivTessalationShaderFLAT())
             self.setNoLightSolidShader(self.shaderCollection.subdivTessalationShaderNoLight())
             self.setWireframeShader(self.shaderCollection.subdivTessalationShader())
             self.setNoLightWireframeShader(self.shaderCollection.subdivTessalationShaderNoLight())
@@ -75,8 +78,9 @@ class SphereIcos(Actor):
         """Generate vertices"""
         vertices = []
         indices = []
-        t = (1.0 + math.sqrt(5.0)) / 2.0
+        uv = []
 
+        t = (1.0 + math.sqrt(5.0)) / 2.0
         self.addVertex(np.array((-1.0,  t,  0)), vertices)
         self.addVertex(np.array(( 1.0,  t,  0)), vertices)
         self.addVertex(np.array((-1.0, -t,  0)), vertices)
@@ -92,6 +96,9 @@ class SphereIcos(Actor):
         self.addVertex(np.array((-t,  0, -1.0)), vertices)
         self.addVertex(np.array((-t,  0,  1.0)), vertices)
 
+        for i in range (len(vertices)):
+            v = vertices[i]/np.linalg.norm(vertices[i])
+            uv += [[math.atan2(v[2], v[0])/(2*math.pi), 0.5  + math.asin(v[1])/0.5]]
         ## 5 faces around point 0
         indices += [[0, 11, 5]]
         indices += [[0, 11, 5]]
@@ -121,12 +128,16 @@ class SphereIcos(Actor):
         indices += [[8, 6, 7]]
         indices += [[9, 8, 1]]
         
+        aux = []
+        for i in range (len(vertices)):
+            aux += [QVector2D(vertices[i][0], vertices[i][1])]
+
         self._vertices = np.array(vertices, dtype=np.float32)
         if self._rgb_colors:
             self._colors = np.abs(np.array(vertices, dtype=np.float32))
         self._normals = np.array(vertices, dtype=np.float32)
         self._indices = np.array(indices, dtype=np.uint32)
-
+        self._uv = np.array(aux, dtype=QVector2D)
 
     def initialize(self):
         """Creates icosahedron geometry"""
@@ -147,7 +158,10 @@ class SphereIcos(Actor):
         self._active_shader.setUniformValue("innerSubdivisionLevel", self._inLevel)
         self._active_shader.setUniformValue("outerSubdivisionLevel", self._ouLevel)
         self._active_shader.setUniformValue("radius", self._radius)
-        #GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
+        if (self._active_shader == self._solid_shader and self._render_mode == GL.GL_PATCHES):
+            for i in range (self.numberOfVertices):
+                s = "uvplane[" + str(i) + "]"
+                self._active_shader.setAttributeValue(s, self._uv[i])
         GL.glDrawElements(self._render_mode, self.numberOfIndices, GL.GL_UNSIGNED_INT, None)
         self._active_shader.release()
 

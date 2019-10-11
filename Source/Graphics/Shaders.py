@@ -18,20 +18,54 @@ class Shaders(QObject):
 
         ## create tessalation shader to subdivide icosahedron
         self.__instance._subdivTessalationShader = QOpenGLShaderProgram()
-        self.__instance._subdivTessalationShader.addShaderFromSourceCode(QOpenGLShader.Vertex, Shaders.sivs())
-        self.__instance._subdivTessalationShader.addShaderFromSourceCode(QOpenGLShader.TessellationControl, Shaders.SphereIcosControlShader())
-        self.__instance._subdivTessalationShader.addShaderFromSourceCode(QOpenGLShader.TessellationEvaluation, Shaders.sites())
-        self.__instance._subdivTessalationShader.addShaderFromSourceCode(QOpenGLShader.Fragment, Shaders.sifs())
+        self.__instance._subdivTessalationShader.addShaderFromSourceCode(QOpenGLShader.Vertex, Shaders.si_vs())
+        self.__instance._subdivTessalationShader.addShaderFromSourceCode(QOpenGLShader.TessellationControl, Shaders.si_tcs())
+        self.__instance._subdivTessalationShader.addShaderFromSourceCode(QOpenGLShader.TessellationEvaluation, Shaders.si_tes())
+        self.__instance._subdivTessalationShader.addShaderFromSourceCode(QOpenGLShader.Fragment, Shaders.si_fs())
         self.__instance._subdivTessalationShader.link()
 
         ## create tessalation shader to subdivide icosahedron WITHOUT LIGHT
         self.__instance._subdivTessalationShaderNoLight = QOpenGLShaderProgram()
-        self.__instance._subdivTessalationShaderNoLight.addShaderFromSourceCode(QOpenGLShader.Vertex, Shaders.sivs())
-        self.__instance._subdivTessalationShaderNoLight.addShaderFromSourceCode(QOpenGLShader.TessellationControl, Shaders.SphereIcosControlShader())
-        self.__instance._subdivTessalationShaderNoLight.addShaderFromSourceCode(QOpenGLShader.TessellationEvaluation, Shaders.sitesnl())
-        self.__instance._subdivTessalationShaderNoLight.addShaderFromSourceCode(QOpenGLShader.Fragment, Shaders.sifsnl())
+        self.__instance._subdivTessalationShaderNoLight.addShaderFromSourceCode(QOpenGLShader.Vertex, Shaders.si_vs())
+        self.__instance._subdivTessalationShaderNoLight.addShaderFromSourceCode(QOpenGLShader.TessellationControl, Shaders.si_tcs())
+        self.__instance._subdivTessalationShaderNoLight.addShaderFromSourceCode(QOpenGLShader.TessellationEvaluation, Shaders.si_tes_nl())
+        self.__instance._subdivTessalationShaderNoLight.addShaderFromSourceCode(QOpenGLShader.Fragment, Shaders.si_fs_nl())
         self.__instance._subdivTessalationShaderNoLight.link()
 
+        ## create tessalation shader to subdivide icosahedron FLAT
+        self.__instance._subdivTessalationShaderFLAT = QOpenGLShaderProgram()
+        self.__instance._subdivTessalationShaderFLAT.addShaderFromSourceCode(QOpenGLShader.Vertex, Shaders.si_vs())
+        self.__instance._subdivTessalationShaderFLAT.addShaderFromSourceCode(QOpenGLShader.TessellationControl, Shaders.si_tcs())
+        self.__instance._subdivTessalationShaderFLAT.addShaderFromSourceCode(QOpenGLShader.TessellationEvaluation, Shaders.si_tes_flat())
+        self.__instance._subdivTessalationShaderFLAT.addShaderFromSourceCode(QOpenGLShader.Fragment, Shaders.si_fs_flat())
+        self.__instance._subdivTessalationShaderFLAT.link()
+
+        # COLOR
+        ## create tessalation shader to subdivide icosahedron
+        self.__instance._color_subdivTessalationShader = QOpenGLShaderProgram()
+        self.__instance._color_subdivTessalationShader.addShaderFromSourceCode(QOpenGLShader.Vertex, Shaders.si_vs_c())
+        self.__instance._color_subdivTessalationShader.addShaderFromSourceCode(QOpenGLShader.TessellationControl, Shaders.si_tcs_c())
+        self.__instance._color_subdivTessalationShader.addShaderFromSourceCode(QOpenGLShader.TessellationEvaluation, Shaders.si_tes_c())
+        self.__instance._color_subdivTessalationShader.addShaderFromSourceCode(QOpenGLShader.Fragment, Shaders.si_fs_c())
+        self.__instance._color_subdivTessalationShader.link()
+
+        # COLOR
+        ## create tessalation shader to subdivide icosahedron WITHOUT LIGHT
+        self.__instance._color_subdivTessalationShaderNoLight = QOpenGLShaderProgram()
+        self.__instance._color_subdivTessalationShaderNoLight.addShaderFromSourceCode(QOpenGLShader.Vertex, Shaders.si_vs_c())
+        self.__instance._color_subdivTessalationShaderNoLight.addShaderFromSourceCode(QOpenGLShader.TessellationControl, Shaders.si_tcs_c())
+        self.__instance._color_subdivTessalationShaderNoLight.addShaderFromSourceCode(QOpenGLShader.TessellationEvaluation, Shaders.si_tes_c_nl())
+        self.__instance._color_subdivTessalationShaderNoLight.addShaderFromSourceCode(QOpenGLShader.Fragment, Shaders.si_fs_c_nl())
+        self.__instance._color_subdivTessalationShaderNoLight.link()
+
+        # COLOR
+        ## create tessalation shader to subdivide icosahedron FLAT
+        self.__instance._color_subdivTessalationShaderFLAT = QOpenGLShaderProgram()
+        self.__instance._color_subdivTessalationShaderFLAT.addShaderFromSourceCode(QOpenGLShader.Vertex, Shaders.si_vs_c())
+        self.__instance._color_subdivTessalationShaderFLAT.addShaderFromSourceCode(QOpenGLShader.TessellationControl, Shaders.si_tcs_c())
+        self.__instance._color_subdivTessalationShaderFLAT.addShaderFromSourceCode(QOpenGLShader.TessellationEvaluation, Shaders.si_tes_cflat())
+        self.__instance._color_subdivTessalationShaderFLAT.addShaderFromSourceCode(QOpenGLShader.Fragment, Shaders.si_fs_c_flat())
+        self.__instance._color_subdivTessalationShaderFLAT.link()
 
         ## create background shader program
         self.__instance._backgroundShader = QOpenGLShaderProgram()
@@ -100,8 +134,9 @@ class Shaders(QObject):
         self.__instance._normalVisShader.link()
 
 
+
     @classmethod
-    def sivs(cls):
+    def si_vs(cls):
         vertexShaderSource = """
         #version 400
         layout(location = 0) in vec3 position;
@@ -118,7 +153,7 @@ class Shaders(QObject):
         return vertexShaderSource
 
     @classmethod
-    def SphereIcosControlShader(cls):
+    def si_tcs(cls):
         controlTessalationShaderSource = (
         '''
 		#version 400 core
@@ -129,14 +164,18 @@ class Shaders(QObject):
 
 		uniform int innerSubdivisionLevel;
 		uniform int outerSubdivisionLevel;
+        uniform vec2 uvplane[12];
 
 		out vec3 tcPosition[];
 		out vec3 tcNormal[];
+        smooth out vec2 tcUVplane[];
 
 		void main()
 		{
+
 			tcPosition[gl_InvocationID] = vPosition[gl_InvocationID];
             tcNormal[gl_InvocationID] = vNormal[gl_InvocationID];
+            tcUVplane[gl_InvocationID] = uvplane[gl_InvocationID];
 			gl_TessLevelInner[0] = innerSubdivisionLevel;
 			gl_TessLevelOuter[0] = outerSubdivisionLevel;
 			gl_TessLevelOuter[1] = outerSubdivisionLevel;
@@ -147,7 +186,7 @@ class Shaders(QObject):
         return controlTessalationShaderSource
 
     @classmethod
-    def sites(cls):
+    def si_tes(cls):
         evalShader = (
             """
 		#version 400 core
@@ -155,6 +194,7 @@ class Shaders(QObject):
 
 		in vec3 tcPosition[];
         in vec3 tcNormal[];
+        smooth in vec2 tcUVplane[];
 
         uniform mat4 viewMatrix;
         uniform mat4 modelMatrix;
@@ -184,6 +224,12 @@ class Shaders(QObject):
 			vec3 n2 = gl_TessCoord.z * tcNormal[2];
             vec3 normal = vec3(normalize(n0 + n1 + n2));
 
+            //uvplane values
+			vec2 uv0 = gl_TessCoord.x * tcUVplane[0];
+			vec2 uv1 = gl_TessCoord.y * tcUVplane[1];
+			vec2 uv2 = gl_TessCoord.z * tcUVplane[2];
+            vec2 uv = vec2(normalize(uv0 + uv1 + uv2));
+            
             //light values
             if (lightPosition.w == 0.0) {
                 lightDirection = normalize(lightPosition.xyz);
@@ -206,7 +252,7 @@ class Shaders(QObject):
         return evalShader
 
     @classmethod
-    def sifs(cls):
+    def si_fs(cls):
         fragmentShaderSource = (
         """
         #version 400
@@ -263,7 +309,7 @@ class Shaders(QObject):
         return fragmentShaderSource
 
     @classmethod
-    def sitesnl(cls):
+    def si_tes_nl(cls):
         evalShader = (
             """
 		#version 400 core
@@ -308,7 +354,7 @@ class Shaders(QObject):
         return evalShader
 
     @classmethod
-    def sifsnl(cls):
+    def si_fs_nl(cls):
         fragmentShaderSource = (
         """
         #version 400
@@ -326,6 +372,506 @@ class Shaders(QObject):
 
         """)
         return fragmentShaderSource
+
+    @classmethod
+    def si_tes_flat(cls):
+        evalShader = (
+            """
+		#version 400 core
+		layout(triangles, equal_spacing, ccw) in;
+
+		in vec3 tcPosition[];
+        in vec3 tcNormal[];
+
+        uniform mat4 viewMatrix;
+        uniform mat4 modelMatrix;
+        uniform mat4 projectionMatrix;
+        uniform mat3 normalMatrix;
+        uniform vec4 lightPosition;
+        uniform vec3 lightAttenuation;
+        uniform float radius;
+
+        out vec3 tePatchDistance;
+        out vec4 tePosition;
+        flat out vec4 teNormal;
+        smooth out vec3 lightDirection;
+        smooth out float attenuation;
+
+		void main()
+		{
+            //vertices positions
+			vec3 p0 = gl_TessCoord.x * tcPosition[0];
+			vec3 p1 = gl_TessCoord.y * tcPosition[1];
+			vec3 p2 = gl_TessCoord.z * tcPosition[2];
+            vec3 pos = radius * vec3(normalize(p0 + p1 + p2));
+
+            //normal values
+			vec3 n0 = gl_TessCoord.x * tcNormal[0];
+			vec3 n1 = gl_TessCoord.y * tcNormal[1];
+			vec3 n2 = gl_TessCoord.z * tcNormal[2];
+            vec3 normal = vec3(normalize(n0 + n1 + n2));
+
+            //light values
+            if (lightPosition.w == 0.0) {
+                lightDirection = normalize(lightPosition.xyz);
+                attenuation = 1.0;
+            }
+            else {
+                lightDirection = normalize(lightPosition.xyz - tePosition.xyz);
+                float distance = length(lightPosition.xyz - tePosition.xyz);
+                attenuation = 1.0 / (lightAttenuation.x + lightAttenuation.y * distance + lightAttenuation.z * distance * distance);
+            }
+
+            //gl values
+            tePosition = viewMatrix * modelMatrix * vec4(pos, 1.0);
+            teNormal = viewMatrix * vec4(normalMatrix * normal, 0.0);
+            tePatchDistance = gl_TessCoord;
+			gl_Position = projectionMatrix * tePosition;
+		}
+		"""
+        )
+        return evalShader
+
+    @classmethod
+    def si_fs_flat(cls):
+        fragmentShaderSource = (
+        """
+        #version 400
+        struct Material {
+            vec3 emission;
+            vec3 ambient;
+            vec3 diffuse;
+            vec3 specular;    
+            float shininess;
+        }; 
+
+        struct Light {
+            vec3 ambient;
+            vec3 diffuse;
+            vec3 specular;
+        };
+
+        out vec3 tePatchDistance;
+        in vec4 tePosition;
+        flat in vec4 teNormal;
+        smooth in vec3 lightDirection;
+        smooth in float attenuation;
+
+        uniform Material material;
+        uniform Light light;
+
+        out vec4 fragColor;
+
+        void main()
+        {
+
+            //vec3 color = vec3(0.0, 0.5, 0.0);
+            //FragColor = vec4(color, 1.0);
+
+            // ambient term
+            vec3 ambient = material.ambient * light.ambient;
+
+            // diffuse term
+            vec3 N = normalize(teNormal.xyz);
+            vec3 L = normalize(lightDirection);
+            vec3 diffuse = light.diffuse * material.diffuse * max(dot(N, L), 0.0);
+
+            // specular term
+            vec3 E = normalize(-tePosition.xyz);
+            vec3 R = normalize(-reflect(L, N)); 
+            vec3 specular = light.specular * material.specular * pow(max(dot(R, E), 0.0), material.shininess);
+
+            // final intensity
+            vec3 intensity = material.emission + clamp(ambient + attenuation * (diffuse + specular), 0.0, 1.0);
+            fragColor = vec4(intensity, 1.0);
+        }
+
+        """)
+        return fragmentShaderSource
+
+    @classmethod
+    def si_vs_c(cls):
+        vertexShaderSource = """
+        #version 400
+        layout(location = 0) in vec3 position;
+        layout(location = 1) in vec3 normal;
+        layout(location = 2) in vec3 color;
+        
+        smooth out vec3 vPosition;
+        smooth out vec3 vNormal;
+        smooth out vec3 vColor;
+
+        void main() {
+            vPosition = position;
+            vNormal = normal;
+            vColor = color;
+        }
+        """
+        return vertexShaderSource
+
+    @classmethod
+    def si_tcs_c(cls):
+        controlTessalationShaderSource = (
+        '''
+		#version 400 core
+		layout(vertices = 3) out;
+		
+		smooth in vec3 vPosition[];
+        smooth in vec3 vNormal[];
+        smooth in vec3 vColor[];
+
+		uniform int innerSubdivisionLevel;
+		uniform int outerSubdivisionLevel;
+
+		out vec3 tcPosition[];
+		out vec3 tcNormal[];
+        out vec3 tcColor[];
+		void main()
+		{
+			tcPosition[gl_InvocationID] = vPosition[gl_InvocationID];
+            tcNormal[gl_InvocationID] = vNormal[gl_InvocationID];
+            tcColor[gl_InvocationID] = vColor[gl_InvocationID];
+			gl_TessLevelInner[0] = innerSubdivisionLevel;
+			gl_TessLevelOuter[0] = outerSubdivisionLevel;
+			gl_TessLevelOuter[1] = outerSubdivisionLevel;
+			gl_TessLevelOuter[2] = outerSubdivisionLevel;
+		}
+		'''
+        )
+        return controlTessalationShaderSource
+
+    @classmethod
+    def si_tes_c(cls):
+        evalShader = (
+            """
+		#version 400 core
+		layout(triangles, equal_spacing, ccw) in;
+
+		in vec3 tcPosition[];
+        in vec3 tcNormal[];
+        in vec3 tcColor[];
+
+        uniform mat4 viewMatrix;
+        uniform mat4 modelMatrix;
+        uniform mat4 projectionMatrix;
+        uniform mat3 normalMatrix;
+        uniform vec4 lightPosition;
+        uniform vec3 lightAttenuation;
+        uniform float radius;
+
+        out vec3 tePatchDistance;
+        out vec4 tePosition;
+        out vec4 teNormal;
+        out vec4 teColor;
+        smooth out vec3 lightDirection;
+        smooth out float attenuation;
+
+		void main()
+		{
+            //vertices positions
+			vec3 p0 = gl_TessCoord.x * tcPosition[0];
+			vec3 p1 = gl_TessCoord.y * tcPosition[1];
+			vec3 p2 = gl_TessCoord.z * tcPosition[2];
+            vec3 pos = radius * vec3(normalize(p0 + p1 + p2));
+
+            //normal values
+			vec3 n0 = gl_TessCoord.x * tcNormal[0];
+			vec3 n1 = gl_TessCoord.y * tcNormal[1];
+			vec3 n2 = gl_TessCoord.z * tcNormal[2];
+            vec3 normal = vec3(normalize(n0 + n1 + n2));
+
+            //color values
+			vec3 c0 = gl_TessCoord.x * tcColor[0];
+			vec3 c1 = gl_TessCoord.y * tcColor[1];
+			vec3 c2 = gl_TessCoord.z * tcColor[2];
+            vec3 color = vec3(normalize(c0 + c1 + c2));
+
+            //light values
+            if (lightPosition.w == 0.0) {
+                lightDirection = normalize(lightPosition.xyz);
+                attenuation = 1.0;
+            }
+            else {
+                lightDirection = normalize(lightPosition.xyz - tePosition.xyz);
+                float distance = length(lightPosition.xyz - tePosition.xyz);
+                attenuation = 1.0 / (lightAttenuation.x + lightAttenuation.y * distance + lightAttenuation.z * distance * distance);
+            }
+
+            //gl values
+            tePosition = viewMatrix * modelMatrix * vec4(pos, 1.0);
+            teNormal = viewMatrix * vec4(normalMatrix * normal, 0.0);
+            teColor = vec4(color, 1.0);
+            tePatchDistance = gl_TessCoord;
+			gl_Position = projectionMatrix * tePosition;
+		}
+		"""
+        )
+        return evalShader
+
+    @classmethod
+    def si_tes_cflat(cls):
+        evalShader = (
+            """
+		#version 400 core
+		layout(triangles, equal_spacing, ccw) in;
+
+		in vec3 tcPosition[];
+        in vec3 tcNormal[];
+        in vec3 tcColor[];
+
+        uniform mat4 viewMatrix;
+        uniform mat4 modelMatrix;
+        uniform mat4 projectionMatrix;
+        uniform mat3 normalMatrix;
+        uniform vec4 lightPosition;
+        uniform vec3 lightAttenuation;
+        uniform float radius;
+
+        out vec3 tePatchDistance;
+        out vec4 tePosition;
+        flat out vec4 teNormal;
+        out vec4 teColor;
+        smooth out vec3 lightDirection;
+        smooth out float attenuation;
+
+		void main()
+		{
+            //vertices positions
+			vec3 p0 = gl_TessCoord.x * tcPosition[0];
+			vec3 p1 = gl_TessCoord.y * tcPosition[1];
+			vec3 p2 = gl_TessCoord.z * tcPosition[2];
+            vec3 pos = radius * vec3(normalize(p0 + p1 + p2));
+
+            //normal values
+			vec3 n0 = gl_TessCoord.x * tcNormal[0];
+			vec3 n1 = gl_TessCoord.y * tcNormal[1];
+			vec3 n2 = gl_TessCoord.z * tcNormal[2];
+            vec3 normal = vec3(normalize(n0 + n1 + n2));
+
+            //color values
+			vec3 c0 = gl_TessCoord.x * tcColor[0];
+			vec3 c1 = gl_TessCoord.y * tcColor[1];
+			vec3 c2 = gl_TessCoord.z * tcColor[2];
+            vec3 color = vec3(normalize(c0 + c1 + c2));
+
+            //light values
+            if (lightPosition.w == 0.0) {
+                lightDirection = normalize(lightPosition.xyz);
+                attenuation = 1.0;
+            }
+            else {
+                lightDirection = normalize(lightPosition.xyz - tePosition.xyz);
+                float distance = length(lightPosition.xyz - tePosition.xyz);
+                attenuation = 1.0 / (lightAttenuation.x + lightAttenuation.y * distance + lightAttenuation.z * distance * distance);
+            }
+
+            //gl values
+            tePosition = viewMatrix * modelMatrix * vec4(pos, 1.0);
+            teNormal = viewMatrix * vec4(normalMatrix * normal, 0.0);
+            teColor = viewMatrix * modelMatrix * vec4(color, 1.0);
+            tePatchDistance = gl_TessCoord;
+			gl_Position = projectionMatrix * tePosition;
+		}
+		"""
+        )
+        return evalShader
+
+    @classmethod
+    def si_fs_c(cls):
+        fragmentShaderSource = (
+        """
+        #version 400
+        struct Material {
+            vec3 emission;
+            vec3 ambient;
+            vec3 diffuse;
+            vec3 specular;    
+            float shininess;
+        }; 
+
+        struct Light {
+            vec3 ambient;
+            vec3 diffuse;
+            vec3 specular;
+        };
+
+        out vec3 tePatchDistance;
+        in vec4 tePosition;
+        in vec4 teNormal;
+        in vec4 teColor;
+
+        smooth in vec3 lightDirection;
+        smooth in float attenuation;
+
+        uniform Material material;
+        uniform Light light;
+
+        out vec4 fragColor;
+
+        void main()
+        {
+            vec3 color = vec3(teColor.x, teColor.y, teColor.z);
+            // ambient term
+            vec3 ambient = material.ambient * light.ambient;
+
+            // diffuse term
+            vec3 N = normalize(teNormal.xyz);
+            vec3 L = normalize(lightDirection);
+            vec3 diffuse = light.diffuse * color * max(dot(N, L), 0.0);
+
+            // specular term
+            vec3 E = normalize(-tePosition.xyz);
+            vec3 R = normalize(-reflect(L, N)); 
+            vec3 specular = light.specular * material.specular * pow(max(dot(R, E), 0.0), material.shininess);
+
+            // final intensity
+            vec3 intensity = material.emission + clamp(ambient + attenuation * (diffuse + specular), 0.0, 1.0);
+
+            fragColor = vec4(intensity, 1.0);
+        }
+
+        """)
+        return fragmentShaderSource
+
+    @classmethod
+    def si_fs_c_flat(cls):
+        fragmentShaderSource = (
+        """
+        #version 400
+        struct Material {
+            vec3 emission;
+            vec3 ambient;
+            vec3 diffuse;
+            vec3 specular;    
+            float shininess;
+        }; 
+
+        struct Light {
+            vec3 ambient;
+            vec3 diffuse;
+            vec3 specular;
+        };
+
+        out vec3 tePatchDistance;
+        in vec4 tePosition;
+        flat in vec4 teNormal;
+        in vec4 teColor;
+
+        smooth in vec3 lightDirection;
+        smooth in float attenuation;
+
+        uniform Material material;
+        uniform Light light;
+
+        out vec4 fragColor;
+
+        void main()
+        {
+            vec3 color = vec3(teColor.x, teColor.y, teColor.z);
+            // ambient term
+            vec3 ambient = material.ambient * light.ambient;
+
+            // diffuse term
+            vec3 N = normalize(teNormal.xyz);
+            vec3 L = normalize(lightDirection);
+            vec3 diffuse = light.diffuse * color * max(dot(N, L), 0.0);
+
+            // specular term
+            vec3 E = normalize(-tePosition.xyz);
+            vec3 R = normalize(-reflect(L, N)); 
+            vec3 specular = light.specular * material.specular * pow(max(dot(R, E), 0.0), material.shininess);
+
+            // final intensity
+            vec3 intensity = material.emission + clamp(ambient + attenuation * (diffuse + specular), 0.0, 1.0);
+
+            fragColor = vec4(intensity, 1.0);
+        }
+
+        """)
+        return fragmentShaderSource
+
+    @classmethod
+    def si_tes_c_nl(cls):
+        evalShader = (
+            """
+		#version 400 core
+		layout(triangles, equal_spacing, ccw) in;
+
+		in vec3 tcPosition[];
+        in vec3 tcNormal[];
+        in vec3 tcColor[];
+
+
+        uniform mat4 viewMatrix;
+        uniform mat4 modelMatrix;
+        uniform mat4 projectionMatrix;
+        uniform mat3 normalMatrix;
+        uniform float radius;
+        
+        smooth out vec4 teColor;
+		void main()
+		{
+           //vertices positions
+			vec3 p0 = gl_TessCoord.x * tcPosition[0];
+			vec3 p1 = gl_TessCoord.y * tcPosition[1];
+			vec3 p2 = gl_TessCoord.z * tcPosition[2];
+            vec3 pos = radius * vec3(normalize(p0 + p1 + p2));
+
+            //color values
+			vec3 c0 = gl_TessCoord.x * tcColor[0];
+			vec3 c1 = gl_TessCoord.y * tcColor[1];
+			vec3 c2 = gl_TessCoord.z * tcColor[2];
+            vec3 color = vec3(normalize(c0 + c1 + c2));
+
+            teColor = vec4(color, 1.0);
+
+            //gl values
+            teColor = vec4(color, 1.0);
+			gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(pos, 1.0);
+		}
+		"""
+        )
+        return evalShader
+
+    @classmethod
+    def si_fs_c_nl(cls):
+        fragmentShaderSource = (
+        """
+        #version 400
+
+        smooth in vec4 teColor;
+
+        out vec4 fragColor;
+
+        void main()
+        {
+
+            fragColor = teColor;
+        }
+
+        """)
+        return fragmentShaderSource
+
+
+    @classmethod
+    def attributeColorTransformVertexShader(cls):
+        vertexShaderSource = """
+        #version 400
+        layout(location = 0) in vec3 position;
+        layout(location = 2) in vec3 color;
+        uniform mat4 modelMatrix;
+        uniform mat4 viewMatrix;
+        uniform mat4 projectionMatrix;
+        smooth out vec4 vertexColor;
+
+        void main()
+        {
+            gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0);
+            vertexColor = vec4(color, 1.0);
+        }
+        """
+        return vertexShaderSource
+
 
     @classmethod
     def uniformMaterialPhongVertexFlatShader(cls):
@@ -672,7 +1218,7 @@ class Shaders(QObject):
 
             // specular term
             vec3 E = normalize(-vertexPosition.xyz);
-             vec3 R = normalize(-reflect(L, N)); 
+            vec3 R = normalize(-reflect(L, N)); 
             vec3 specular = light.specular * material.specular * pow(max(dot(R, E), 0.0), material.shininess);
 
             // final intensity
@@ -842,24 +1388,6 @@ class Shaders(QObject):
         return vertexShaderSource
 
 
-    @classmethod
-    def attributeColorTransformVertexShader(cls):
-        vertexShaderSource = """
-        #version 400
-        layout(location = 0) in vec3 position;
-        layout(location = 2) in vec3 color;
-        uniform mat4 modelMatrix;
-        uniform mat4 viewMatrix;
-        uniform mat4 projectionMatrix;
-        smooth out vec4 vertexColor;
-
-        void main()
-        {
-            gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0);
-            vertexColor = vec4(color, 1.0);
-        }
-        """
-        return vertexShaderSource
 
 
     @classmethod
@@ -1083,6 +1611,19 @@ class Shaders(QObject):
 
     def subdivTessalationShaderNoLight(self):
         return self.__instance._subdivTessalationShaderNoLight
+
+    def subdivTessalationShaderFLAT(self):
+        return self.__instance._subdivTessalationShaderFLAT
+
+    def color_subdivTessalationShader(self):
+        return self.__instance._color_subdivTessalationShader
+
+    def color_subdivTessalationShaderNoLight(self):
+        return self.__instance._color_subdivTessalationShaderNoLight
+
+    def color_subdivTessalationShaderFLAT(self):
+        return self.__instance._color_subdivTessalationShaderFLAT
+
 
     def attributeColorPhongFlatShader(self):
         return self.__instance._attributeColorPhongFlatShader
