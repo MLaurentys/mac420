@@ -20,5 +20,35 @@ Parte II: Esfera Tesselagem
     + Tesselagem sem luz
  - O raio foi adicionado apenas ao TCS, nao ao codigo base do icosaedro
  - Calculos de posicao na tela feitos no TCS
-!!- Infelizmente, normais sao iguais as posicoes, nao diferenciando o flat no normal
- - Pares uv nao estao implementados
+ - Estao implementadas as composicoes
+    + Sem luz
+    + Com cores
+      * Flat
+      * Nao-Flat
+    + Sem cores
+      * Flat
+      * Nao-Flat
+ - Pares uv estao implementados na composicao "_subdivTessalationShader"
+    + Coordenadas iniciais criadas junto aos vertices do icosaedro base
+    + O calculo comeca no TCS e termina no TES... (nao sei como mostrar os valores)
+      * si_tcs()
+      * si_tes()
+
+Como navegar:
+- Cenas com tres esferas posicionadas de diferentes argumentos:
+    + Linha 155~ de Renderer.py
+      * Selecionar a opcao desejada
+        # SCENE = 0 #polar spheres
+        # SCENE = 1 #tessalation spheres
+    + Codigo escrito
+      * Todo o trabalho feito esta em:
+        # SpherePolar.py
+        # SphereIcos.py
+        # Shaders.py
+          { Nomes de composicoes abreviados
+
+O que NAO funciona:
+ - Solid Wireframe com cor (usando tessalation)
+ - Ha uma sensacao estranha com a cor na versao sem luz. Nao sei ao certo o que acontece, mas fica
+    bastante escuro.
+ Obs: Eu nao sei por que eles ocorre, se nao teria corrigido oss problemas
