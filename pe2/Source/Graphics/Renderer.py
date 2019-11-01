@@ -132,7 +132,7 @@ class Renderer(QOpenGLWidget):
             self._gpuElapsed = 0
 
             xform1 = QMatrix4x4()
-            self._currentActor =  Obj_Polyhedron(self._world, "obj-models/buildings/1.obj", transform=xform1)
+            self._currentActor =  Obj_Polyhedron(self._world, "1", transform=xform1)
 
             self._world.addActor(self._currentActor)
             
