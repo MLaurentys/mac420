@@ -29,7 +29,6 @@ class Renderer(QOpenGLWidget):
     def __init__(self, parent=None, **kwargs):
         """Initialize OpenGL version profile."""
         super(Renderer, self).__init__(parent)
-
         self._parent = parent
 
         ## deal with options
@@ -55,7 +54,12 @@ class Renderer(QOpenGLWidget):
         self.setAutoFillBackground(False)
 
         self.currentActor_ = None
+        self._shift_isPressed = False
 
+    def shiftPressed(self):
+        self._shift_isPressed = True
+    def shiftReleased(self):
+        self._shift_isPressed = False
 
     def printOpenGLInformation(self, format, verbosity=0):
         print("\n*** OpenGL context information ***")
@@ -76,6 +80,7 @@ class Renderer(QOpenGLWidget):
             #for k in range(0, GL.glGetIntegerv(GL.GL_NUM_EXTENSIONS)-1):
             #    print("{},".format(GL.glGetStringi(GL.GL_EXTENSIONS, k).decode('UTF-8')))
             #print("{}".format(GL.glGetStringi(GL.GL_EXTENSIONS, k+1).decode('UTF-8')))
+
 
 
     def initializeGL(self):
@@ -131,10 +136,10 @@ class Renderer(QOpenGLWidget):
             self._frameElapsed = 0
             self._gpuElapsed = 0
 
-            xform1 = QMatrix4x4()
-            self._currentActor =  Obj_Polyhedron(self._world, "1", transform=xform1)
-
-            self._world.addActor(self._currentActor)
+            #xform1 = QMatrix4x4()
+            #aux =  Obj_Polyhedron(self._world, "1", transform=xform1)
+#
+            #self._world.addActor(aux)
             
             self._initialized = True
 
@@ -253,25 +258,7 @@ class Renderer(QOpenGLWidget):
             self._world.camera.setPosition(newpos)
     
 
-    def mousePressEvent(self, event):
-        """ Called by the Qt libraries whenever the window receives a mouse click."""
-        super(Renderer, self).mousePressEvent(event)
         
-        if event.isAccepted():
-            return
-
-        if event.buttons() & Qt.LeftButton:
-            self._trackball.press(self._pixelPosToViewPos(event.localPos()), QQuaternion())
-            self._trackball.start()
-            event.accept()
-            if not self.isAnimating():
-                self.update()
-
-        elif event.buttons() & Qt.RightButton:
-            self.pan(self._pixelPosToViewPos(event.localPos()), state='start')
-            self.update()
-
-
     def mouseMoveEvent(self, event):
         """Called by the Qt libraries whenever the window receives a mouse move/drag event."""
         super(Renderer, self).mouseMoveEvent(event)
@@ -413,6 +400,8 @@ class Renderer(QOpenGLWidget):
         self._world.setDrawStyle(Scene.DrawStyle.Styles[index])
         self.update()
 
+    def setActors(self, objects):
+        self._objs = objects
 
     def lightingChanged(self, state):
         self._world.setLighting(state)
@@ -447,9 +436,14 @@ class Renderer(QOpenGLWidget):
         return QPointF(2.0 * float(point.x()) / self.width() - 1.0, 1.0 - 2.0 * float(point.y()) / self.height())
 
     def changeActor(self, index):
-        pass
-        # self.makeCurrent()
-        # self.currentActor_.destroy()
-        # self._world.removeActor(self.currentActor_)
-        
+        if (index == 0): return
+        if (index > len(self._objs)):
+            print("!!!!! Fora da Lista !!!!!!")
+            return
+        self.makeCurrent()
+        xform1 = QMatrix4x4()
+        aux =  Obj_Polyhedron(self._world, self._objs[index - 1], transform=xform1)
+        self._world.addActor(aux)
 
+    def delActor(self):
+        self._world.removeActor(self.currentActor_)

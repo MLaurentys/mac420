@@ -38,6 +38,7 @@ class Obj_Polyhedron(Actor):
         indices = []
         normals = []
         names = []
+        ranges = {}
         materials = {None: Material()}
         #prepares files
         if (not os.path.exists(fout_path + obj_file)):
@@ -84,18 +85,21 @@ class Obj_Polyhedron(Actor):
                                                ambient=ka,
                                                diffuse=kd,
                                                specular=ks,
-                                               shininess=illum)
+                                               shininess=16)
 
         #gets obj geometry
         processFace(fin_path + self._obj_file, fout_path + obj_file, 1.0)
         with open(fout_path + obj_file, "r") as f:
             curr_name = None
+            min_max = [0,0]
+            maxi = 0
             aux_all = []
             for line in f:
                 data = line.split()
                 if len(data) < 1:
                     pass
                 elif data[0] == "f":
+                    maxi += 3
                     a = data[1]
                     a = a.split('/')
                     b = data[2]
@@ -115,42 +119,46 @@ class Obj_Polyhedron(Actor):
                 elif data[0] == "vn":
                     normals.append([[data[1], data[2], data[3]]])
                 elif data[0] == "vp":
-                    print ("vp not implemented")
-                elif data[0] == "vt":
-                    print ("vt not implemented")
+                    continue
                 elif data[0] == "l":
                     print ("l not implemented")
                 elif data[0] == "usemtl":
+                    a = min_max[1]
+                    b = maxi
                     names.append(curr_name)
+                    ranges[curr_name] = [a, b]
                     faces[curr_name] = aux_all
+                    min_max = [a,b]
                     aux_all = []
                     curr_name = data[1]
 
 
-        v = {}
-        n = {}
+        #v = {}
+        #n = {}
         v_aux = []
         n_aux = []
         for m in names:
-            v[m] = []
-            n[m] = []
+            #v[m] = []
+            #n[m] = []
             for j  in range(len(faces[m])):
                 for i in range(3):
-                    y = faces[m][j][3*i]
-                    x = vertices[y - 1]
-                    v[m].append(x)
-                    n[m].append(normals[faces[m][j][3*i + 2] - 1])
+                    #y = faces[m][j][3*i]
+                    #x = vertices[y - 1]
+                    #v[m].append(x)
+                    #n[m].append(normals[faces[m][j][3*i + 2] - 1])
                     v_aux.append(vertices[faces[m][j][3*i] - 1])
-                    n_aux.append(vertices[faces[m][j][3*i + 2] - 1])
-            v[m] = np.array(v[m], dtype="float32")
+                    n_aux.append(normals[faces[m][j][3*i + 2] - 1])
+            #v[m] = np.array(v[m], dtype="float32")
+            #n[m] = np.array(n[m], dtype="float32")
         self._vertices = np.array(v_aux, dtype="float32")
         self._normals = np.array(n_aux, dtype="float32")
         self._materials = materials
         self._num_vertices = len(self._vertices)
         self._num_normals = len(self._normals)
         self._names = names
-        self._vertices_m = v
-
+        #self._vertices_m = v
+        #self._normals_m = n
+        self._ranges = ranges
     def initialize(self):
         if self._vertices is None:
             self.generateGeometry()
@@ -163,9 +171,10 @@ class Obj_Polyhedron(Actor):
 
     def render(self):
         for m in self._names:
-            self._material = self._materials[m]
-            self._vertices = self._vertices_m[m]
-            amt = len(self._vertices)
-            GL.glDrawArrays(GL.GL_TRIANGLES, 0 , amt)
-
+            self._active_shader.setUniformValue('material.emission'  , self._materials[m].emissionColor )
+            self._active_shader.setUniformValue('material.ambient'  , self._materials[m].ambientColor )
+            self._active_shader.setUniformValue('material.diffuse'  , self._materials[m].diffuseColor )
+            self._active_shader.setUniformValue('material.specular' , self._materials[m].specularColor)
+            self._active_shader.setUniformValue('material.shininess', self._materials[m].shininess    )
+            GL.glDrawArrays(GL.GL_TRIANGLES, self._ranges[m][0], self._ranges[m][1] - self._ranges[m][0])
     

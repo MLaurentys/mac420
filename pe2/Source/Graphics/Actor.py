@@ -332,7 +332,7 @@ class Actor(QObject):
             vertices = vertices.tostring()
             #vertices = np.fromstring(vertices, dtype="uint8")
             self._vbo.write(0, vertices, len(vertices))
-            #buffer = self.mapBuffer(0, len(vertices), QOpenGLBuffer.RangeWrite | QOpenGLBuffer.RangeInvalidate)
+          #buffer = self.mapBuffer(0, len(vertices), QOpenGLBuffer.RangeWrite | QOpenGLBuffer.RangeInvalidate)
             #buffer[:len(vertices)] = vertices
             #self.unmapBuffer()
         if normals is not None:

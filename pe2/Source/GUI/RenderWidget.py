@@ -1,3 +1,5 @@
+import os
+import PyQt5.QtCore
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -34,12 +36,31 @@ class RenderWidget(QWidget):
         self._viewLayout.setSpacing(3)
 
         # Adding actor selector
-        label = QLabel("Actor: ")
+        label = QLabel("Object Sources: ")
         self._bottomLayout.addWidget(label)
         self.actorCombo = QComboBox()
         self.actorCombo.currentIndexChanged.connect(self._renderer.changeActor)
         self._bottomLayout.addWidget(self.actorCombo)
-
+        self.actorCombo.addItem("Select To Create")
+        #gets list of available objects
+        files = []
+        available = []
+        o_dir = "obj-models/buildings/"
+        for file in os.listdir(o_dir):
+            if (file.endswith(".obj")):
+                if (file.strip("obj") + "mtl" in files):
+                    available.append(file.strip(".obj"))
+                else:
+                    files.append(file)
+            elif (file.endswith(".mtl")):
+                if (file.strip("mtl") + "obj" in files):
+                    available.append(file.strip(".mtl"))
+                else:
+                    files.append(file)
+        available = list(set(available))
+        for i in range(len(available)): self.actorCombo.addItem(available[i])
+        #for i in range(len(available)): available[i] = o_dir + available[i] + ".obj"
+        self._renderer.setActors(available)
         ## register view functions
         self._viewFunc = [
             self._renderer.viewLeft,
@@ -146,12 +167,66 @@ class RenderWidget(QWidget):
         self._options.setMenu(menu)
         self._renderLayout.addWidget(self._options)
 
+
+        self._delete = QPushButton()
+        self._delete.setText("Delete")
+        self._delete.setFont(self._font)
+        self._renderLayout.addWidget(self._delete)
+        self._delete.clicked.connect(self.delActor)
+        self._delete.setDisabled(True)
+        
         self._bottomLayout.addStretch(1)
 
         self._mainLayout.addLayout(self._bottomLayout)
         self.setLayout(self._mainLayout)
 
-   
+    def mousePressEvent(self, event):
+        """ Called by the Qt libraries whenever the window receives a mouse click."""
+        print("MOUSE")
+        super(RenderWidget, self).mousePressEvent(event)
+        if event.isAccepted():
+            return
+        render = self._renderer
+        if event.buttons() & Qt.LeftButton:
+            point = render._pixelPosToViewPos(event.localPos())
+            render._trackball.press(point, QQuaternion())
+            render._trackball.start()
+            event.accept()
+            if not render.isAnimating():
+                render.update()
+            if (render._shift_isPressed):
+                wd = render._world
+                ob = wd.pick(point)
+                if (ob[0] != None):
+                    if (wd.selectedActor() == None):
+                        self._delete.setDisabled(False)
+                    wd.selectActor(ob[0])
+                    render.currentActor_ = ob[0]
+                    print("AEE")
+                else:
+                    if (wd.selectedActor() != None):
+                        self._delete.setDisabled(True)
+                        wd.selectActor(None)
+                        render.currentActor_ = None
+                    print("nops")
+                print("ok")
+        elif event.buttons() & Qt.RightButton:
+            render.pan(render._pixelPosToViewPos(event.localPos()), state='start')
+            render.update()
+
+    def keyPressEvent(self, QKeyEvent):
+        super(RenderWidget, self).keyPressEvent(QKeyEvent)
+        if (QKeyEvent.key() == Qt.Key_Shift):
+            self._renderer.shiftPressed()
+    def keyReleaseEvent(self, QKeyEvent):
+        super(RenderWidget, self).keyReleaseEvent(QKeyEvent)
+        if (QKeyEvent.key() == Qt.Key_Shift):
+            self._renderer.shiftReleased()
+        
+    def delActor(self):
+        self._delete.setDisabled(False)
+        self._renderer.delActor()
+
     def clear(self):
         """Clear viewer"""
         self._renderer.clear()

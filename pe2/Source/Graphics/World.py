@@ -77,6 +77,7 @@ class World(Scene):
         for each in self.actors():
             each.initialize()
 
+   
         
     def background(self):
         """Returns background properties"""
