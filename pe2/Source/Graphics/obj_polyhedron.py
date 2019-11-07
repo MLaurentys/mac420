@@ -38,6 +38,7 @@ class Obj_Polyhedron(Actor):
         indices = []
         normals = []
         names = []
+        textures = []
         ranges = {}
         materials = {None: Material()}
         #prepares files
@@ -88,7 +89,7 @@ class Obj_Polyhedron(Actor):
                                                shininess=16)
 
         #gets obj geometry
-        processFace(fin_path + self._obj_file, fout_path + obj_file, 1.0)
+        processFace(fin_path + self._obj_file, fout_path + obj_file, 0.1)
         with open(fout_path + obj_file, "r") as f:
             curr_name = None
             min_max = [0,0]
@@ -113,9 +114,7 @@ class Obj_Polyhedron(Actor):
                 elif data[0] == "v":
                     vertices.append([data[1], data[2], data[3]])
                 elif data[0] == "vt":
-                    if (not vt_toggle):
-                        print ("vt not implemented")
-                        vt_toggle = True
+                    textures.append([data[1], data[2]])
                 elif data[0] == "vn":
                     normals.append([[data[1], data[2], data[3]]])
                 elif data[0] == "vp":
@@ -156,6 +155,7 @@ class Obj_Polyhedron(Actor):
         self._num_vertices = len(self._vertices)
         self._num_normals = len(self._normals)
         self._names = names
+        self._texture = textures
         #self._vertices_m = v
         #self._normals_m = n
         self._ranges = ranges
