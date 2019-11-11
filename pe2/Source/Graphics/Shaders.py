@@ -341,6 +341,7 @@ class Shaders(QObject):
         uniform Material material;
         uniform Light light;
 
+        uniform float selected;
         out vec4 fragColor;
 
         void main()
@@ -360,7 +361,7 @@ class Shaders(QObject):
 
             // final intensity
             vec3 intensity = material.emission + clamp(ambient + attenuation * (diffuse + specular), 0.0, 1.0);
-            fragColor = vec4(intensity, 1.0);
+            fragColor = vec4(intensity, 1.0) + vec4(selected, 0.0, 0.0, 0.0);
         }
         """
         return fragmentShaderSource
@@ -731,12 +732,12 @@ class Shaders(QObject):
 
             // specular term
             vec3 E = normalize(-vertexPosition.xyz);
-             vec3 R = normalize(-reflect(L, N)); 
+            vec3 R = normalize(-reflect(L, N)); 
             vec3 specular = light.specular * material.specular * pow(max(dot(R, E), 0.0), material.shininess);
 
             // final intensity
             vec3 intensity = material.emission + clamp(ambient + attenuation * (diffuse + specular), 0.0, 1.0);
-            vec4 tex = texture(texObject, textureCoord.st);
+            vec4 tex = texture(texObject, textureCoord);
             fragColor = (1.0 - tex.a) * vec4(intensity, 1.0) + tex.a * vec4(selected * tex.rgb, 1.0);
         }
         """

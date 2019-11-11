@@ -12,6 +12,9 @@ from Source.Graphics.Camera import Camera
 from Source.Graphics.Material import Material
 from Source.Graphics.Scene import Scene
 from Source.Graphics.Actor import Actor
+from Source.Graphics.Cone import Cone
+from Source.Graphics.Cylinder import Cylinder
+from Source.Graphics.Cube import Cube
 from Source.Graphics.Group import Group
 from Source.Graphics.Gnomon import Gnomon
 from Source.Graphics.World import World
@@ -31,6 +34,9 @@ class Renderer(QOpenGLWidget):
         super(Renderer, self).__init__(parent)
         self._parent = parent
 
+        self._transforming = False
+        self._prevPoint = QPointF(0.0, 0.0)
+        self.axis_selected = False
         ## deal with options
         self._lighting = kwargs.get("lighting", True)
         self._antialiasing = kwargs.get("antialiasing", False)
@@ -136,10 +142,10 @@ class Renderer(QOpenGLWidget):
             self._frameElapsed = 0
             self._gpuElapsed = 0
 
-            #xform1 = QMatrix4x4()
-            #aux =  Obj_Polyhedron(self._world, "1", transform=xform1)
-#
-            #self._world.addActor(aux)
+            xform1 = QMatrix4x4()
+            aux =  Obj_Polyhedron(self._world, "1", transform=xform1)
+
+            self._world.addActor(aux)
             
             self._initialized = True
 
@@ -161,10 +167,13 @@ class Renderer(QOpenGLWidget):
         self._world.clear()
         self.update()
 
-
     def renderTimeEstimates(self):
         return [self._frameElapsed, self._gpuElapsed]
 
+    def selectActor(self, actor):
+        self.RemoveLines()
+        self.currentActor_ = actor
+        self._world.selectActor(actor)
 
     @property
     def lighting(self):
@@ -277,19 +286,6 @@ class Renderer(QOpenGLWidget):
             self.update()
 
 
-    def mouseReleaseEvent(self, event):
-        """ Called by the Qt libraries whenever the window receives a mouse release."""
-        super(Renderer, self).mouseReleaseEvent(event)
-        
-        if event.isAccepted():
-            return
-
-        if event.button() == Qt.LeftButton:
-            self._trackball.release(self._pixelPosToViewPos(event.localPos()), QQuaternion())
-            event.accept()
-            if not self.isAnimating():
-                self._trackball.stop()
-                self.update()
 
 
     def wheelEvent(self, event):
@@ -446,4 +442,228 @@ class Renderer(QOpenGLWidget):
         self._world.addActor(aux)
 
     def delActor(self):
+        self.RemoveLines()
         self._world.removeActor(self.currentActor_)
+    
+    def generateScalingLines(self):
+        self.makeCurrent()
+        self.RemoveLines()
+        cur = self.currentActor_
+        if (type(cur) is not Obj_Polyhedron): pass
+        cur._state = 1
+        sc = cur._scale
+        asc = sc * 2.5 # axis scale
+        dist = 5.0 * asc * 3
+
+        # x cube
+        matrix = QMatrix4x4()
+        matrix.rotate(-90.0, QVector3D(0.0, 0.0, 1.0))
+        matrix.scale(asc, asc, asc)
+        matrix.translate(0.0, dist/2.0, 0.0)
+        xl = Cube(self._world, name="sxc",
+                material=Material(diffuse=QVector3D(1.0, 0.0, 0.0), specular=QVector3D(0.5, 0.5, 0.5), 
+                shininess=76.8), transform=matrix)
+        # y cube
+        matrix = QMatrix4x4()
+        matrix.scale(asc, asc, asc)
+        matrix.translate(0.0, dist/2.0, 0.0)
+        yl = Cube(self._world, name="syc",
+                material=Material(diffuse=QVector3D(0.0, 1.0, 0.0), specular=QVector3D(0.5, 0.5, 0.5), 
+            shininess=76.8), transform=matrix)
+
+        # z cube
+        matrix = QMatrix4x4()
+        matrix.rotate(90.0, QVector3D(1.0, 0.0, 0.0))
+        matrix.scale(asc, asc, asc)
+        matrix.translate(0.0, dist/2.0, 0.0)
+        zl = Cube(self._world, name="szc",
+                material=Material(diffuse=QVector3D(0.0, 0.47, 0.78), specular=QVector3D(0.5, 0.5, 0.5), 
+            shininess=76.8), transform=matrix)
+
+        # x cylinder
+        matrix = QMatrix4x4()
+        matrix.rotate(-90.0, QVector3D(0.0, 0.0, 1.0))
+        matrix.scale(asc, asc, asc)
+        matrix.translate(0.0, dist/4.0, 0.0)
+        xlc = Cylinder(self._world, name="txc", height=dist/2.0, radius=sc,
+            resolution=12, material=Material(diffuse=QVector3D(1.0, 0.0, 0.0), specular=QVector3D(0.5, 0.5, 0.5), 
+            shininess=76.8), transform=matrix)
+        # y cylinder
+        matrix = QMatrix4x4()
+        matrix.scale(asc, asc, asc)
+        matrix.translate(0.0, dist/4.0, 0.0)
+        ylc = Cylinder(self._world, name="tyc", height=dist/2.0, radius=sc,
+            resolution=12, material=Material(diffuse=QVector3D(0.0, 1.0, 0.0), specular=QVector3D(0.5, 0.5, 0.5), 
+            shininess=76.8), transform=matrix)
+
+        # z cylinder
+        matrix = QMatrix4x4()
+        matrix.rotate(90.0, QVector3D(1.0, 0.0, 0.0))
+        matrix.scale(asc, asc, asc)
+        matrix.translate(0.0, dist/4.0, 0.0)
+        zlc = Cylinder(self._world, name="tzc", height=dist/2.0, radius=sc,
+            resolution=12, material=Material(diffuse=QVector3D(0.0, 0.47, 0.78), specular=QVector3D(0.5, 0.5, 0.5), 
+            shininess=76.8), transform=matrix)
+
+        newlines = [xl, yl, zl, xlc, ylc, zlc]
+        self.currentActor_._lines = newlines
+        for l in newlines:
+            self._world.addActor(l)
+    def generateRotatingLines(self):
+        pass
+    def generateTranslatingLines(self):
+        self.makeCurrent()
+        self.RemoveLines()
+        cur = self.currentActor_
+        if (type(cur) is not Obj_Polyhedron): pass
+        sc = cur._scale
+        cur._state = 3
+        asc = sc * 2.5 # axis scale
+        dist = 5.0 * asc * 3
+        ## x axis cone
+        matrix = QMatrix4x4()
+        matrix.rotate(-90.0, QVector3D(0.0, 0.0, 1.0))
+        matrix.scale(asc, asc, asc)
+        matrix.translate(0.0, dist, 0.0)
+        xl = Cone(self._world, name="tx",
+            resolution=12, material=Material(diffuse=QVector3D(1.0, 0.0, 0.0), specular=QVector3D(0.5, 0.5, 0.5), 
+            shininess=76.8), transform=matrix)
+
+        ## y axis cone
+        matrix = QMatrix4x4()
+        matrix.scale(asc, asc, asc)        
+        matrix.translate(0.0, dist, 0.0) ##6.0
+        yl = Cone(self._world, name="ty",
+            resolution=12, material=Material(diffuse=QVector3D(0.0, 1.0, 0.0), specular=QVector3D(0.5, 0.5, 0.5), 
+            shininess=76.8), transform=matrix)
+
+        ## z axis cone
+        matrix = QMatrix4x4()
+        matrix.rotate(90.0, QVector3D(1.0, 0.0, 0.0))
+        matrix.scale(asc, asc, asc)        
+        matrix.translate(0.0, dist, 0.0)
+        zl = Cone(self._world, name="tz",
+            resolution=12, material=Material(diffuse=QVector3D(0.0, 0.47, 0.78), specular=QVector3D(0.5, 0.5, 0.5), 
+            shininess=76.8), transform=matrix)
+
+        # x cylinder
+        matrix = QMatrix4x4()
+        matrix.rotate(-90.0, QVector3D(0.0, 0.0, 1.0))
+        matrix.scale(asc, asc, asc)
+        matrix.translate(0.0, dist/2.0, 0.0)
+        xlc = Cylinder(self._world, name="txc", height=dist, radius=sc,
+            resolution=12, material=Material(diffuse=QVector3D(1.0, 0.0, 0.0), specular=QVector3D(0.5, 0.5, 0.5), 
+            shininess=76.8), transform=matrix)
+        # y cylinder
+        matrix = QMatrix4x4()
+        matrix.scale(asc, asc, asc)
+        matrix.translate(0.0, dist/2.0, 0.0)
+        ylc = Cylinder(self._world, name="tyc", height=dist, radius=sc,
+            resolution=12, material=Material(diffuse=QVector3D(0.0, 1.0, 0.0), specular=QVector3D(0.5, 0.5, 0.5), 
+            shininess=76.8), transform=matrix)
+
+        # z cylinder
+        matrix = QMatrix4x4()
+        matrix.rotate(90.0, QVector3D(1.0, 0.0, 0.0))
+        matrix.scale(asc, asc, asc)
+        matrix.translate(0.0, dist/2.0, 0.0)
+        zlc = Cylinder(self._world, name="tzc", height=dist, radius=sc,
+            resolution=12, material=Material(diffuse=QVector3D(0.0, 0.47, 0.78), specular=QVector3D(0.5, 0.5, 0.5), 
+            shininess=76.8), transform=matrix)
+
+        newlines = [xl, yl, zl, xlc, ylc, zlc]
+        self.currentActor_._lines = newlines
+        for l in newlines:
+            self._world.addActor(l)
+    
+    def selectX(self):
+        self.axis_selected = True
+        self.currentActor_._axis = 1
+        self.currentActor_._lines[0].setHighlighted(True)
+        self.currentActor_._lines[1].setHighlighted(False)
+        self.currentActor_._lines[2].setHighlighted(False)
+    def selectY(self):
+        self.axis_selected = True
+        self.currentActor_._axis = 2
+        self.currentActor_._lines[0].setHighlighted(False)
+        self.currentActor_._lines[1].setHighlighted(True)
+        self.currentActor_._lines[2].setHighlighted(False)
+    def selectZ(self):
+        self.axis_selected = True
+        self.currentActor_._axis = 3
+        self.currentActor_._lines[0].setHighlighted(False)
+        self.currentActor_._lines[1].setHighlighted(False)
+        self.currentActor_._lines[2].setHighlighted(True)
+
+    def IsAxisSelected(self): return self.axis_selected
+
+    def RemoveLines(self):
+        self.axis_selected = False
+        self._transforming = False
+        if (type(self.currentActor_) is not Obj_Polyhedron): return
+        old = self.currentActor_._lines
+        if (old != None): 
+            for l in old:
+                self._world.removeActor(l)
+        self.currentActor_._lines = None
+
+    def TransformActor(self, amt):
+        if (self.currentActor_._state == 1):
+            self.scale(amt)
+        elif (self.currentActor_._state == 2):
+            pass
+        elif (self.currentActor_._state == 3):
+            self.translate(amt)
+
+    def scale (self, amt):
+        if (amt < 0):
+            amt = -1/amt
+        cur = self.currentActor_
+        initialPos = cur.position()
+        cur.translate(-initialPos)
+        cur.scale(amt)
+        cur.translate(initialPos)
+
+    def translate (self, amt):
+        cur = self.currentActor_
+        if(cur._axis == 1):
+            cur.translate(QVector3D(amt, 0.0, 0.0))
+        elif(cur._axis == 2):
+            cur.translate(QVector3D(0.0, amt, 0.0))
+        elif(cur._axis == 3):
+            cur.translate(QVector3D(0.0, 0.0, amt))
+
+    def startTransforming(self, point):
+        if (self._transforming): return
+        self._transforming = True
+        self._prevPoint = point
+        
+    def finishTransforming(self, point):
+        moved = self._prevPoint - point
+        norm = math.sqrt(moved.x()**2 + moved.y()**2)
+        self._transforming = False
+        norm *= 3.0
+        if (self._prevPoint.x() > point.x()):
+            norm = -norm
+        self.TransformActor(norm)
+
+
+
+    def mouseReleaseEvent(self, event):
+        """ Called by the Qt libraries whenever the window receives a mouse release."""
+        super(Renderer, self).mouseReleaseEvent(event)
+        print("yup, here")
+        if event.isAccepted():
+            return
+
+        if (event.button() == Qt.LeftButton):
+            event.accept()
+            print("mouse left released")
+            point = self._pixelPosToViewPos(event.localPos())
+            if (self.IsAxisSelected()):
+                self.finishTransforming(point)
+            else:
+                self._trackball.release(point, QQuaternion())
+                if not self.isAnimating():
+                    self._trackball.stop()
+                    self.update()

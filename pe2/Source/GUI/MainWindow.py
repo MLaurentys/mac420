@@ -121,7 +121,7 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, closeEvent):
         """Intercept close event and perform clean-up"""
-
+        print("intercept")
         ## then propagae event
         super(MainWindow, self).closeEvent(closeEvent)
 

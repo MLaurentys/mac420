@@ -38,6 +38,10 @@ class Actor(QObject):
         """Initialize actor."""
         super(Actor, self).__init__()
 
+        self._state = 0 #1=scale, 2=rotation, 3=scale
+        self._lines = None
+        self._axis = 0 # 1=x, 2=y, 3=z
+
         self._scene = scene
         self._transform = kwargs.get("transform", QMatrix4x4())
         self._render_mode = kwargs.get("mode", Actor.RenderMode.Triangles)
@@ -120,15 +124,25 @@ class Actor(QObject):
     def setTransform(self, xform):
         self._transform = xform
 
+    def scale(self, amt):
+        if(self._axis == 1):
+            self._transform.scale(amt, 1.0, 1.0)
+        elif(self._axis == 2):
+            self._transform.scale(1.0, amt, 1.0)
+        elif(self._axis == 3):
+            self._transform.scale(1.0, 1.0, amt)
+
+    def translate(self, pos):
+        self._transform[0,3] += pos.x()
+        self._transform[1,3] += pos.y()
+        self._transform[2,3] += pos.z()
 
     def transform(self):
         return self._transform
 
-    
     def position(self):
         xform = self.transform()
         return QVector3D(xform[0,3], xform[1,3], xform[2,3])
-
 
     def setPosition(self, pos):
         #print("pos==",pos)
@@ -476,13 +490,13 @@ class Actor(QObject):
         self._active_shader.setUniformValue("normalMatrix", normalMatrix)
 
         if self.texture() is not None:
-            self._active_shader.setUniformValue("texObject", 0)
+            self._active_shader.setUniformValue("texObject", 1.0)
         
         ## bind active material
         if self.isSelectable() and self.isSelected():
-            self._active_shader.setUniformValue("selected", 1.0)
+            self._active_shader.setUniformValue("selected", 0.5)
         else:
-            self._active_shader.setUniformValue("selected", 0.65)
+            self._active_shader.setUniformValue("selected", 0.0)
 
         ## set highlight color
         if self.isHighlighted():
@@ -641,4 +655,4 @@ class Actor(QObject):
         return (True, tMax)
 
 
-    
+

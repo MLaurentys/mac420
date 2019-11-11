@@ -2,13 +2,38 @@ import os
 import sys
 from shutil import copyfile
 from PyQt5.QtGui import QVector3D
+from PIL import Image
 sys.path.append('../..')
 import math
 import numpy as np
 from Source.Graphics.Material import Material
 from triangulate_obj_faces import processFace
 from OpenGL import GL
+# from OpenGL.GL import *
+# from OpenGL.GLUT import *
+# from OpenGL.GLU import *
 from Source.Graphics.Actor import Actor
+
+# def read_texture(filename):
+#     glutInit()
+#     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH)
+#     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+#     img = Image.open(filename)
+#     img_data = np.array(list(img.getdata()), np.int8)
+#     texture_id = glGenTextures(1)
+#     glBindTexture(GL_TEXTURE_2D, texture_id)
+#     glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+#     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP)
+#     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP)
+#     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+#     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+#     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+#     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+#     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL)
+#     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img.size[0], img.size[1], 0,
+#                  GL_RGB, GL_UNSIGNED_BYTE, img_data)
+#     return texture_id
+
 
 class Obj_Polyhedron(Actor):
 
@@ -17,8 +42,14 @@ class Obj_Polyhedron(Actor):
         """Initialize actor."""
         super(Obj_Polyhedron, self).__init__(renderer, **kwargs)
 
+        # Init basic object variables
+        # if (os.path.exists("redtexture.png")):
+        #     self.setTexture(data.get("redtexture.png"))
+        self._selectable = True
         self._obj_file = filename + '.obj'
         self._mtl_file = filename + '.mtl'
+        self._scale = 0.15 # obj file is too large
+        self.setPickFactor(1.10)
         self._vertices = None
         self._normals = None
         self._faces = None
@@ -27,8 +58,7 @@ class Obj_Polyhedron(Actor):
         self.initialize()
 
     def generateGeometry(self):
-        # init variables
-        vt_toggle = False
+        # Init local variables
         obj_file = 'temp.obj'
         mtl_file = 'temp.mtl'
         fout_path = 'Source/Graphics/'
@@ -41,15 +71,18 @@ class Obj_Polyhedron(Actor):
         textures = []
         ranges = {}
         materials = {None: Material()}
-        #prepares files
+        #
+        # Prepares files for I/O
+        #
         if (not os.path.exists(fout_path + obj_file)):
             os.mknod(fout_path + obj_file)
         if (os.path.exists(fout_path + mtl_file)):
             os.remove(fout_path + mtl_file)
         open(fout_path + obj_file, 'w').close() #erases content
         copyfile(fin_path + self._mtl_file, fout_path + mtl_file) #copy whole file
-
-        #makes materials
+        #
+        # Gets mtl information from file
+        #
         with open(fout_path + mtl_file, 'r') as file:
             f = file.readlines()
             i = 0
@@ -87,9 +120,10 @@ class Obj_Polyhedron(Actor):
                                                diffuse=kd,
                                                specular=ks,
                                                shininess=16)
-
-        #gets obj geometry
-        processFace(fin_path + self._obj_file, fout_path + obj_file, 0.1)
+        #
+        # Gets obj geometry from file
+        #
+        processFace(fin_path + self._obj_file, fout_path + obj_file, self._scale)
         with open(fout_path + obj_file, "r") as f:
             curr_name = None
             min_max = [0,0]
@@ -130,35 +164,25 @@ class Obj_Polyhedron(Actor):
                     min_max = [a,b]
                     aux_all = []
                     curr_name = data[1]
-
-
-        #v = {}
-        #n = {}
+        #
+        # Creates the object properties
+        #
         v_aux = []
         n_aux = []
         for m in names:
-            #v[m] = []
-            #n[m] = []
             for j  in range(len(faces[m])):
                 for i in range(3):
-                    #y = faces[m][j][3*i]
-                    #x = vertices[y - 1]
-                    #v[m].append(x)
-                    #n[m].append(normals[faces[m][j][3*i + 2] - 1])
                     v_aux.append(vertices[faces[m][j][3*i] - 1])
                     n_aux.append(normals[faces[m][j][3*i + 2] - 1])
-            #v[m] = np.array(v[m], dtype="float32")
-            #n[m] = np.array(n[m], dtype="float32")
         self._vertices = np.array(v_aux, dtype="float32")
         self._normals = np.array(n_aux, dtype="float32")
         self._materials = materials
         self._num_vertices = len(self._vertices)
         self._num_normals = len(self._normals)
         self._names = names
-        self._texture = textures
-        #self._vertices_m = v
-        #self._normals_m = n
+        self._texCoords = np.array(textures, dtype="float32")
         self._ranges = ranges
+
     def initialize(self):
         if self._vertices is None:
             self.generateGeometry()
@@ -166,15 +190,15 @@ class Obj_Polyhedron(Actor):
         ## create object
         self.create(self._vertices, 
                     colors=None,
-                    normals=self._normals)
+                    normals=self._normals,
+                    texcoords=self._texCoords)
 
 
     def render(self):
         for m in self._names:
-            self._active_shader.setUniformValue('material.emission'  , self._materials[m].emissionColor )
+            self._active_shader.setUniformValue('material.emission' , self._materials[m].emissionColor )
             self._active_shader.setUniformValue('material.ambient'  , self._materials[m].ambientColor )
             self._active_shader.setUniformValue('material.diffuse'  , self._materials[m].diffuseColor )
             self._active_shader.setUniformValue('material.specular' , self._materials[m].specularColor)
             self._active_shader.setUniformValue('material.shininess', self._materials[m].shininess    )
             GL.glDrawArrays(GL.GL_TRIANGLES, self._ranges[m][0], self._ranges[m][1] - self._ranges[m][0])
-    

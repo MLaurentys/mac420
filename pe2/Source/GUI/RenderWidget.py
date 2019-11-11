@@ -3,7 +3,6 @@ import PyQt5.QtCore
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
-
 from Source.Graphics.Renderer import Renderer
 
 class RenderWidget(QWidget):
@@ -180,6 +179,8 @@ class RenderWidget(QWidget):
         self._mainLayout.addLayout(self._bottomLayout)
         self.setLayout(self._mainLayout)
 
+        self.setFocusPolicy(Qt.StrongFocus)
+
     def mousePressEvent(self, event):
         """ Called by the Qt libraries whenever the window receives a mouse click."""
         print("MOUSE")
@@ -189,9 +190,12 @@ class RenderWidget(QWidget):
         render = self._renderer
         if event.buttons() & Qt.LeftButton:
             point = render._pixelPosToViewPos(event.localPos())
-            render._trackball.press(point, QQuaternion())
-            render._trackball.start()
-            event.accept()
+            if (render.IsAxisSelected()):
+                render.startTransforming(point)
+            else:
+                render._trackball.press(point, QQuaternion())
+                render._trackball.start()
+                event.accept()
             if not render.isAnimating():
                 render.update()
             if (render._shift_isPressed):
@@ -200,28 +204,46 @@ class RenderWidget(QWidget):
                 if (ob[0] != None):
                     if (wd.selectedActor() == None):
                         self._delete.setDisabled(False)
-                    wd.selectActor(ob[0])
-                    render.currentActor_ = ob[0]
-                    print("AEE")
+                    render.selectActor(ob[0])
                 else:
                     if (wd.selectedActor() != None):
                         self._delete.setDisabled(True)
-                        wd.selectActor(None)
-                        render.currentActor_ = None
-                    print("nops")
-                print("ok")
+                        render.selectActor(None)
         elif event.buttons() & Qt.RightButton:
             render.pan(render._pixelPosToViewPos(event.localPos()), state='start')
             render.update()
 
-    def keyPressEvent(self, QKeyEvent):
-        super(RenderWidget, self).keyPressEvent(QKeyEvent)
-        if (QKeyEvent.key() == Qt.Key_Shift):
+    def keyPressEvent(self, event):
+        print("Key Pressed")
+        key = event.key()
+        if (key == Qt.Key_Shift):
             self._renderer.shiftPressed()
+        elif (key == Qt.Key_Delete):
+            self._renderer.delActor()
+        elif (key == Qt.Key_R):
+            self._renderer.generateRotatingLines()
+        elif (key == Qt.Key_T):
+            self._renderer.generateTranslatingLines()
+        elif (key == Qt.Key_S):
+            self._renderer.generateScalingLines()
+        elif (key == Qt.Key_X):
+            self._renderer.selectX()
+        elif (key == Qt.Key_Y):
+            self._renderer.selectY()
+        elif (key == Qt.Key_Z):
+            self._renderer.selectZ()
+        elif (key == Qt.Key_Escape):
+            self._delete.setDisabled(True)
+            self._renderer.selectActor(None)
+        else:
+            super(RenderWidget, self).keyPressEvent(event)
+
     def keyReleaseEvent(self, QKeyEvent):
         super(RenderWidget, self).keyReleaseEvent(QKeyEvent)
+        render = self._renderer
         if (QKeyEvent.key() == Qt.Key_Shift):
-            self._renderer.shiftReleased()
+            render.shiftReleased()
+
         
     def delActor(self):
         self._delete.setDisabled(False)
